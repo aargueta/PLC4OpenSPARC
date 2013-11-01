@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>manager-chap05-example01-simplehdl_EngineCode</name>
+	<comment></comment>
+	<manageMaxCompiler>true</manageMaxCompiler>
+	<manageMaxGenFD>true</manageMaxGenFD>
+	<manageMaxBlox>true</manageMaxBlox> <maxelerVersion>1.0</maxelerVersion>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+</projectDescription>

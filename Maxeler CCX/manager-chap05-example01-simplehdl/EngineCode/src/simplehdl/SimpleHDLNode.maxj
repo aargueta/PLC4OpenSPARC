@@ -1,0 +1,33 @@
+/**
+ * Document: Manager Compiler Tutorial (maxcompiler-manager-tutorial.pdf)
+ * Chapter: 5      Example: 1      Name: Simple HDL
+ * MaxFile name: SimpleHDL
+ * Summary:
+ *     Custom HDL node that defines the interface between MaxCompiler and an
+ *     external IP block which implements a counter. The node has one stream
+ *     input and one stream output. The output (count) is a counter that counts
+ *     from 0 up to the maximum value specified by the input (max), at which point
+ *     it holds the value for a number of output values before it counts back down
+ *     to 0 again. It then repeats the cycle.
+ */
+package simplehdl;
+
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLNode;
+
+/*
+ * Custom HDL node which includes some VHDL source.
+ */
+final class SimpleHDLNode extends CustomHDLNode{
+	SimpleHDLNode(CustomManager manager, String instance_name) {
+		super(manager, instance_name, "simple_hdl");
+
+		CustomNodeClock clock = addClockDomain("clk");
+		clock.setNeedsReset("rst");
+
+		addInputStream("max", 32, clock, CustomNodeFlowControl.PULL, 1);
+		addOutputStream("count", 32, clock, CustomNodeFlowControl.PUSH, 1);
+
+		addVHDLSource("SimpleHDLSource.vhdl", false);
+	}
+}

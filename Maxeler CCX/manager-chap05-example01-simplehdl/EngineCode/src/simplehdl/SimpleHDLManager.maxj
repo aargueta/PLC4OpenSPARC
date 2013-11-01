@@ -1,0 +1,49 @@
+/**
+ * Document: Manager Compiler Tutorial (maxcompiler-manager-tutorial.pdf)
+ * Chapter: 5      Example: 1      Name: Simple HDL
+ * MaxFile name: SimpleHDL
+ * Summary:
+ *     Manager design that creates an instance of the custom HDL node and
+ *     wraps it in a Manager block. All IO is between the CPU and the DFE.
+ */
+package simplehdl;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLBlock;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLNode;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
+
+class SimpleHDLManager extends CustomManager {
+
+	SimpleHDLManager(EngineParameters engineParameters) {
+		super(engineParameters);
+
+		CustomHDLNode hdlNode = new SimpleHDLNode(this, "simpleHDLNode");
+		CustomHDLBlock hdlBlock = addCustomHDL(hdlNode);
+
+		hdlBlock.getInput("max") <== addStreamFromCPU("max");
+		addStreamToCPU("count") <== hdlBlock.getOutput("count");
+	}
+
+	private static EngineInterface interfaceDefault() {
+		EngineInterface ei = new EngineInterface();
+
+		InterfaceParam n = ei.addParam("N", CPUTypes.INT);
+
+		ei.setStream("max", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		ei.setStream("count", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+
+		return ei;
+	}
+
+	public static void main(String[] args) {
+		SimpleHDLManager m = new SimpleHDLManager(new EngineParameters(args));
+		m.createSLiCinterface(interfaceDefault());
+		m.build();
+	}
+
+
+}

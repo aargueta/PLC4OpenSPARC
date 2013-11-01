@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>manager-chap05-example01-simplehdl_RunRules</name>
+	<comment>Simulation</comment>
+	<manageMaxCompiler>true</manageMaxCompiler>
+	<manageMaxGenFD>true</manageMaxGenFD>
+	<manageMaxBlox>true</manageMaxBlox>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.maxeler.maxcompiler.core.maxCompilerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.maxeler.maxcompiler.core.maxCompilerNature</nature>
+	</natures>
+</projectDescription>
