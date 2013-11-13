@@ -56,7 +56,7 @@ module mb2cpx (
     parameter CPX_GEAR_RATIO = (((`CPX_WIDTH+1-1)/`FSL_D_WIDTH)+1);
     parameter CPX_FSL_EXTRA_BITS  = (`FSL_D_WIDTH * CPX_GEAR_RATIO) -
 				    (`CPX_WIDTH+1);
-
+	 parameter WUT = `FSL_D_WIDTH-CPX_FSL_EXTRA_BITS-1;
     //=============================================
     // Outputs
 
