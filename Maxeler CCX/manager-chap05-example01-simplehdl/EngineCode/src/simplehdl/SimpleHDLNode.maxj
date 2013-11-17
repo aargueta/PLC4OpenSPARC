@@ -20,14 +20,21 @@ import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLNode;
  */
 final class SimpleHDLNode extends CustomHDLNode{
 	SimpleHDLNode(CustomManager manager, String instance_name) {
-		super(manager, instance_name, "simple_hdl");
+		//super(manager, instance_name, "simple_hdl");
+		super(manager, instance_name, "opensparc_t1");
 
-		CustomNodeClock clock = addClockDomain("clk");
-		clock.setNeedsReset("rst");
+		//CustomNodeClock clock = addClockDomain("clk");
+		CustomNodeClock clock = addClockDomain("gclk");
+		//clock.setNeedsReset("rst");
+		clock.setNeedsReset("reset");
 
-		addInputStream("max", 32, clock, CustomNodeFlowControl.PULL, 1);
-		addOutputStream("count", 32, clock, CustomNodeFlowControl.PUSH, 1);
+		//addInputStream("max", 32, clock, CustomNodeFlowControl.PULL, 1);
+		//addOutputStream("count", 32, clock, CustomNodeFlowControl.PUSH, 1);
+		addInputStream("max_cpx", 32, clock, CustomNodeFlowControl.PUSH, 1);
+		addInputStream("max_cpx_ctl", 32, clock, CustomNodeFlowControl.PUSH, 1);
+		addOutputStream("max_pcx", 32, clock, CustomNodeFlowControl.PULL, 1);
 
-		addVHDLSource("SimpleHDLSource.vhdl", false);
+		//addVHDLSource("SimpleHDLSource.vhdl", false);
+		addNetlist("opensparc_t1.ngc", true);
 	}
 }

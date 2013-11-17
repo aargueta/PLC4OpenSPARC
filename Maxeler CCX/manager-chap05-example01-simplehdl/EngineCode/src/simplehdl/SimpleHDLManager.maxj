@@ -21,11 +21,16 @@ class SimpleHDLManager extends CustomManager {
 	SimpleHDLManager(EngineParameters engineParameters) {
 		super(engineParameters);
 
-		CustomHDLNode hdlNode = new SimpleHDLNode(this, "simpleHDLNode");
+		//CustomHDLNode hdlNode = new SimpleHDLNode(this, "simpleHDLNode");
+		CustomHDLNode hdlNode = new SimpleHDLNode(this, "opensparc_t1");
 		CustomHDLBlock hdlBlock = addCustomHDL(hdlNode);
 
-		hdlBlock.getInput("max") <== addStreamFromCPU("max");
-		addStreamToCPU("count") <== hdlBlock.getOutput("count");
+		//hdlBlock.getInput("max") <== addStreamFromCPU("max");
+		hdlBlock.getInput("max_cpx") <== addStreamFromCPU("max_cpx");
+		hdlBlock.getInput("max_cpx_ctl") <== addStreamFromCPU("max_cpx_ctl");
+		//addStreamToCPU("count") <== hdlBlock.getOutput("count");
+		addStreamToCPU("max_pcx") <== hdlBlock.getOutput("max_pcx");
+
 	}
 
 	private static EngineInterface interfaceDefault() {
@@ -33,8 +38,11 @@ class SimpleHDLManager extends CustomManager {
 
 		InterfaceParam n = ei.addParam("N", CPUTypes.INT);
 
-		ei.setStream("max", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
-		ei.setStream("count", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		//ei.setStream("max", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		ei.setStream("max_cpx", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		ei.setStream("max_cpx_ctl", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		//ei.setStream("count", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
+		ei.setStream("max_pcx", CPUTypes.UINT32, n * CPUTypes.UINT32.sizeInBytes());
 
 		return ei;
 	}
