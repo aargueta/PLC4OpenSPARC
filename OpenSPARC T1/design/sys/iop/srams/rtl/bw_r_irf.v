@@ -27,6 +27,7 @@
 */
 
 //FPGA_SYN enables all FPGA related modifications
+`define FPGA_SYN
 `ifdef FPGA_SYN 
 `define FPGA_SYN_IRF
 `endif

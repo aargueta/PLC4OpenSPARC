@@ -77,8 +77,11 @@ module opensparc_t1(
 
 	input max_pcx_read;
 	
+	parameter CPU_ID = 4'b0000;
 	
     // SPARC/PCX interface
+    // DUMMY SPARC LOGIC
+    /*
     reg [15:0] packet_count;
     reg [1:0] idle_count;
     always @(posedge gclk)begin
@@ -88,10 +91,10 @@ module opensparc_t1(
 		end else
 			{packet_count, idle_count} <= {packet_count, idle_count} + 18'd1;
     end 
-
-    wire [`PCX_WIDTH-1:0] spc_pcx_data_pa = {{3{16'hABCD, packet_count}}, 12'h123, packet_count};
-    wire                  spc_pcx_atom_pq = 0;
-    wire [4:0]            spc_pcx_req_pq = {4'b0000, &idle_count};
+	*/
+    wire [`PCX_WIDTH-1:0] spc_pcx_data_pa;// = {{3{16'hABCD, packet_count}}, 12'h123, packet_count};
+    wire                  spc_pcx_atom_pq;// = 0;
+    wire [4:0]            spc_pcx_req_pq;// = {4'b0000, &idle_count};
 	
     // SPARC/PCX interface
     wire [4:0] pcx_spc_grant_px;
@@ -119,6 +122,18 @@ module opensparc_t1(
 		.max_cpx_ctl_valid(max_cpx_ctl_valid), 
 		.max_cpx_ctl_data(max_cpx_ctl_data), 
 		.max_pcx_read(max_pcx_read)
+	);
+
+	iop_fpga(
+		.reset_l(~reset), 
+		.gclk(gclk),
+		.cpu_id(CPU_ID),
+		.spc_pcx_req_pq(spc_pcx_req_pq),
+		.spc_pcx_atom_pq(spc_pcx_atom_pq),
+		.spc_pcx_data_pa(spc_pcx_data_pa),
+		.pcx_spc_grant_px(pcx_spc_grant_px),
+		.cpx_spc_data_rdy_cx2(cpx_spc_data_rdy_cx2),
+		.cpx_spc_data_cx2(cpx_spc_data_cx2)
 	);
 
 endmodule

@@ -38,7 +38,7 @@ input	[144:0]	cpx_spc_data_cx2;
 
 input		reset_l;
 input		gclk;
-input	[1:0] 	cpu_id;
+input	[3:0] 	cpu_id;
 
 parameter C_EXT_RESET_HIGH = 0;
 
@@ -87,7 +87,7 @@ wire		reset_l_int;
 reg		sync;
 
 // CPU ID
-assign const_cpuid = {2'b00, cpu_id};
+assign const_cpuid = cpu_id;
 
 // Reset Logic
 assign cmp_arst_l = reset_l_int;
