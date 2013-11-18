@@ -13,103 +13,54 @@
 #include <MaxSLiCInterface.h>
 #include "Maxfiles.h"
 
-#define COUNTING_UP   0
-#define COUNTING_DOWN 1
-#define HOLD_COUNT 2
+#include "pcx_cpx.h"
 
-void SimpleHDLCPU(int size, int holdCount, uint32_t *dataIn, uint32_t *dataOut)
-{
-	int counter = 0;
-	int nextCounter = 0;
-	int holdCounter = 0;
-	int nextHoldCounter = 0;
-	int max;
-	int mode = COUNTING_UP;
-	int nextMode = COUNTING_UP;
+#define PKT_SIZE	5
 
-	for (int i = 0; i < size; i++) {
-		max = (int) dataIn[i];
-		switch (mode)
-		{
-			case COUNTING_UP:
-				if (counter == max) {
-					nextMode = HOLD_COUNT;
-				} else {
-					if (counter > max) {
-						nextCounter = max;
-						nextMode = HOLD_COUNT;
-					} else {
-						nextCounter = counter + 1;
-					}
-				}
-				break;
-			case COUNTING_DOWN:
-				if (counter == 0) {
-					nextCounter = counter + 1;
-					nextMode = COUNTING_UP;
-				} else
-					nextCounter = counter - 1;
-				break;
-			default:
-				if (holdCounter == holdCount) {
-					nextHoldCounter = 0;
-					nextMode = COUNTING_DOWN;
-				} else
-					nextHoldCounter = holdCounter + 1;
-		}
-
-		dataOut[i] = counter;
-		if (i < size - 1) {
-			//Don't do the last update as this won't be enabled
-			counter = nextCounter;
-			holdCounter = nextHoldCounter;
-			mode = nextMode;
-		}
-	}
-}
-
-int check(int dataSize, uint32_t *dataOut, uint32_t *expected)
-{
-	int status = 0;
-	for (int i = 0; i < dataSize; i++)
-		if (dataOut[i] != expected[i]) {
-			fprintf(stderr, "Error in output: Output data @ %d = %d (expected %d)\n",
-				i, dataOut[i], expected[i]);
-			status = 1;
-		}
-	return status;
-}
-
-int main()
-{
-	const int size = 1024;
-	const int holdCount = 2;
-
+int main() {
+	int size = 2 * PKT_SIZE; // two packets
 	int sizeBytes = size * sizeof(uint32_t);
-	uint32_t *dataIn   = malloc(sizeBytes);
-	uint32_t *dataInCtl   = malloc(sizeBytes);
-	uint32_t *dataOut  = malloc(sizeBytes);
-	uint32_t *expected = malloc(sizeBytes);
+	uint32_t *dataIn = malloc(sizeBytes);
+	uint32_t *dataInCtl = malloc(sizeBytes);
+	uint32_t *dataOut = malloc(sizeBytes);
+
+	uint32_t ctl_valid[PKT_SIZE];
+	uint32_t ctl_invalid[PKT_SIZE];
 
 	for (int i = 0; i < size; i++) {
-		dataIn[i] = rand() >> 24;
-		dataInCtl[i] = i%5 == 0? 8 : i%5;
+		dataIn[i] = 0;
+		ctl_valid[i] = !(i % PKT_SIZE) ? 0x8 : 0x0;
+		ctl_invalid[i] = 0;
 		dataOut[i] = 0;
 	}
 
+	// Initialize Maxeler constructs
+	max_file_t *t1_max = SimpleHDL_init();
+	max_engine_t *t1DFE = max_load(t1_max, "local:*");
+	SimpleHDL_actions_t actions;
+
+	// TODO: set initial size appropriately
+	int num_pkts = 1;
+
+	// TODO: run initialization code for the T1
+
+	actions.param_N = num_pkts * 5;
+	actions.instream_max_cpx = dataIn;
+	actions.instream_max_cpx_ctl = dataInCtl;
+	actions.outstream_max_pcx = dataOut;
+
 	printf("Running DFE.\n");
-	SimpleHDL(size, dataIn, dataInCtl, dataOut);
-
-	SimpleHDLCPU(size, holdCount, dataIn, expected);
-
-	/*int status = check(size, dataOut, expected);
-	if (status)
-		printf("Test failed.\n");
-	else
-		printf("Test passed OK!\n");*/
-	for(int i = 0; i+3 < size; i+=4){
-		printf("%x_%x_%x_%x\n", dataOut[i], dataOut[i+1], dataOut[i+2], dataOut[i+3]);
+	for (;;) {
+		SimpleHDL_run(t1DFE, &actions);
+		num_pkts = process((struct pcx_pkt *)dataOut, (struct cpx_pkt *)dataIn);
+		// TODO: Set new ctrl depending on num_pkts
+		for (int i = 0; i + 3 < size; i += 4) {
+			printf("%x_%x_%x_%x\n", dataOut[i], dataOut[i + 1], dataOut[i + 2],
+					dataOut[i + 3]);
+		}
 	}
 
-	return 0;//status;
+	max_unload(t1DFE);
+
+	return 0;
 }

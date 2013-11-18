@@ -26,10 +26,10 @@ class SimpleHDLManager extends CustomManager {
 		CustomHDLBlock hdlBlock = addCustomHDL(hdlNode);
 
 		//hdlBlock.getInput("max") <== addStreamFromCPU("max");
-		hdlBlock.getInput("max_cpx") <== addStreamFromCPU("max_cpx");
-		hdlBlock.getInput("max_cpx_ctl") <== addStreamFromCPU("max_cpx_ctl");
+		hdlBlock.getInput("max_cpx") <== addStreamFromCPU("max_cpx");			// dataIn
+		hdlBlock.getInput("max_cpx_ctl") <== addStreamFromCPU("max_cpx_ctl");	// dataInCtl
 		//addStreamToCPU("count") <== hdlBlock.getOutput("count");
-		addStreamToCPU("max_pcx") <== hdlBlock.getOutput("max_pcx");
+		addStreamToCPU("max_pcx") <== hdlBlock.getOutput("max_pcx");			// dataOut
 
 	}
 

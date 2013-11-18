@@ -1,5 +1,5 @@
 #
 # This file is managed by MaxIDE. Do NOT change.
 #
-HEADERS:= 
-SOURCES:= SimpleHDLCpuCode.c 
+HEADERS:= addr_map.h config.h fpu.h iob.h pcx_cpx.h reverse_dir.h types.h uart.h 
+SOURCES:= SimpleHDLCpuCode.c addr_map.c fpu.c iob.c pcx_cpx.c reverse_dir.c uart.c 
