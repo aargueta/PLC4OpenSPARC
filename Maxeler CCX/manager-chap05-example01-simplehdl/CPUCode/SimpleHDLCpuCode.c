@@ -13,7 +13,7 @@
 #include <MaxSLiCInterface.h>
 #include "Maxfiles.h"
 
-#include "pcx_cpx.h"
+#include "firmware/pcx_cpx.h"
 
 #define PKT_SIZE	5
 

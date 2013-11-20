@@ -5,6 +5,7 @@
 	<manageMaxCompiler>true</manageMaxCompiler>
 	<manageMaxGenFD>true</manageMaxGenFD>
 	<manageMaxBlox>true</manageMaxBlox>
+	<maxelerVersion></maxelerVersion>
 	<projects>
 	</projects>
 	<buildSpec>
