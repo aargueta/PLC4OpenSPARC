@@ -8,21 +8,21 @@
 #include "config.h"
 #include "reverse_dir.h"
 
-#define INVALID_TAG 0x80000000
+#define INVALID_TAG				0x80000000
 
-#define T1_ICACHE_SIZE         16 * 1024
-#define T1_DCACHE_SIZE         8 * 1024
+#define T1_ICACHE_SIZE			16 * 1024
+#define T1_DCACHE_SIZE			8 * 1024
 
-#define L1_CACHE_N_WAYS 4
+#define L1_CACHE_N_WAYS			4
 
-#define ICACHE_N_SETS ((T1_ICACHE_SIZE / T1_ICACHE_LINE_SIZE) / L1_CACHE_N_WAYS)
-#define DCACHE_N_SETS ((T1_DCACHE_SIZE / T1_DCACHE_LINE_SIZE) / L1_CACHE_N_WAYS)
+#define ICACHE_N_SETS			((T1_ICACHE_SIZE / T1_ICACHE_LINE_SIZE) / L1_CACHE_N_WAYS)
+#define DCACHE_N_SETS			((T1_DCACHE_SIZE / T1_DCACHE_LINE_SIZE) / L1_CACHE_N_WAYS)
 
-#define ICACHE_INDEX(t1_addr) ((t1_addr & 0xfe0) >> 5)
-#define ICACHE_TAG(t1_addr) (t1_addr >> 12)
+#define ICACHE_INDEX(t1_addr)	((t1_addr & 0xfe0) >> 5)
+#define ICACHE_TAG(t1_addr)		(t1_addr >> 12)
 
-#define DCACHE_INDEX(t1_addr) ((t1_addr & 0x7f0) >> 4)
-#define DCACHE_TAG(t1_addr) (t1_addr >> 11)
+#define DCACHE_INDEX(t1_addr)	((t1_addr & 0x7f0) >> 4)
+#define DCACHE_TAG(t1_addr)		(t1_addr >> 11)
 
 struct cache_set {
 	uint32_t tags[L1_CACHE_N_WAYS];

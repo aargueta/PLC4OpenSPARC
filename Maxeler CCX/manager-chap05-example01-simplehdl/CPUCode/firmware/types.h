@@ -47,8 +47,8 @@ typedef uint32_t taddr_opt_t;
 
 #define MB_INVALID_ADDR -1U /* invalid microblaze DRAM address */
 
-//#ifndef REGRESSION_MODE
-//#define mbfw_exit(status) exit(status)
-//#endif
+#ifndef REGRESSION_MODE
+#define mbfw_exit(status) exit(status)
+#endif
 
 #endif /* TYPES_H_ */

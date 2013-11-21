@@ -13,6 +13,8 @@
 #include "addr_map.h"
 #include "reverse_dir.h"
 #include "uart.h"
+#include "iob.h"
+#include "fpu.h"
 #include "pcx_cpx.h"
 
 #define STORE_SIZE_1 0
@@ -90,6 +92,7 @@ void print_pcx_pkt(struct pcx_pkt *pcx_pkt) {
 
 static int invalidate_core_dcache(struct pcx_pkt *pcx_pkt, int core_id,
 		int target_core_id, taddr_opt_t t1_addr) {
+
 	int way, pabit54;
 	struct cpx_pkt cpx_pkt_buf;
 	struct cpx_pkt *cpx_pkt = &cpx_pkt_buf;
@@ -140,7 +143,7 @@ static int invalidate_core_dcache(struct pcx_pkt *pcx_pkt, int core_id,
 	CPX_PKT_REFLECT_ADDR_11_6(cpx_pkt, pcx_pkt);
 	CPX_PKT_REFLECT_CORE_ID(cpx_pkt, pcx_pkt);
 
-	send_cpx_pkt(target_core_id, cpx_pkt);
+	//send_cpx_pkt(target_core_id, cpx_pkt);
 
 	return way;
 }
@@ -184,70 +187,67 @@ static int invalidate_core_icache(struct pcx_pkt *pcx_pkt, int core_id,
 	CPX_PKT_REFLECT_ADDR_11_6(cpx_pkt, pcx_pkt);
 	CPX_PKT_REFLECT_CORE_ID(cpx_pkt, pcx_pkt);
 
-	send_cpx_pkt(target_core_id, cpx_pkt);
+	//send_cpx_pkt(target_core_id, cpx_pkt);
 
 	return way;
 }
 
-/*#ifdef T1_FPGA_DUAL_CORE
+#ifdef T1_FPGA_DUAL_CORE
 
- static void
- invalidate_other_dcache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
- {
- int target_core_id;
+static void invalidate_other_dcache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
+{
+	int target_core_id;
 
- int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
+	int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
 
- for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
- if (target_core_id != core_id) {
- invalidate_core_dcache(pcx_pkt, core_id, target_core_id, t1_addr);
- }
- }
+	for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
+		if (target_core_id != core_id) {
+			invalidate_core_dcache(pcx_pkt, core_id, target_core_id, t1_addr);
+		}
+	}
 
- return;
- }
+	return;
+}
 
- static void
- invalidate_other_icache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
- {
- int target_core_id;
+static void invalidate_other_icache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
+{
+	int target_core_id;
 
- int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
+	int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
 
- for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
- if (target_core_id != core_id) {
- invalidate_core_icache(pcx_pkt, core_id, target_core_id, t1_addr);
- }
- }
+	for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
+		if (target_core_id != core_id) {
+			invalidate_core_icache(pcx_pkt, core_id, target_core_id, t1_addr);
+		}
+	}
 
- return;
- }
+	return;
+}
 
- static void
- invalidate_other_cache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
- {
- int target_core_id;
+static void invalidate_other_cache(struct pcx_pkt *pcx_pkt, taddr_opt_t t1_addr)
+{
+	int target_core_id;
 
- int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
+	int core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
 
- for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
- if (target_core_id != core_id) {
- if (invalidate_core_dcache(pcx_pkt, core_id, target_core_id, t1_addr) == -1) {
- invalidate_core_icache(pcx_pkt, core_id, target_core_id, t1_addr);
- }
- }
- }
+	for (target_core_id=0; target_core_id<T1_NUM_OF_CORES; target_core_id++) {
+		if (target_core_id != core_id) {
+			if (invalidate_core_dcache(pcx_pkt, core_id, target_core_id, t1_addr) == -1) {
+				invalidate_core_icache(pcx_pkt, core_id, target_core_id, t1_addr);
+			}
+		}
+	}
 
- return;
- }
+	return;
+}
 
- #else*//* ifdef T1_FPGA_DUAL_CORE */
+#else /* ifdef T1_FPGA_DUAL_CORE */
 
 #define invalidate_other_cache(pcx_pkt, t1_addr)
 #define invalidate_other_icache(pcx_pkt, t1_addr)
 #define invalidate_other_dcache(pcx_pkt, t1_addr)
 
-//#endif /* ifdef T1_FPGA_DUAL_CORE */
+#endif /* ifdef T1_FPGA_DUAL_CORE */
 
 void return_load_req(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt,
 		taddr_opt_t t1_addr, maddr_t mb_addr, uint32_t preinit_ctrl_flag) {
@@ -273,7 +273,7 @@ void return_load_req(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt,
 
 	if (PCX_PKT_IS_CACHEABLE(pcx_pkt)) {
 
-		//invalidate_other_icache(pcx_pkt, t1_addr);
+		invalidate_other_icache(pcx_pkt, t1_addr);
 
 		way = invalidate_icache(core_id, t1_addr);
 		if (way != -1) {
@@ -343,7 +343,7 @@ static void process_load_fast(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) 
 
 	CPX_PKT_REFLECT_THREAD_ID(cpx_pkt, pcx_pkt);
 
-	//invalidate_other_icache(pcx_pkt, t1_addr);
+	invalidate_other_icache(pcx_pkt, t1_addr);
 
 	signed_way = invalidate_icache(core_id, t1_addr);
 	if (signed_way != -1) {
@@ -442,37 +442,37 @@ static void process_store_fast(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt)
 		break;
 	}
 
-	/*#ifdef REGRESSION_MODE
-	 uint32_t *addr_ptr;
+#ifdef REGRESSION_MODE
+	uint32_t *addr_ptr;
 
-	 if (t1_addr == THREAD_EXIT_STATUS_ADDR_0 ||
-	 t1_addr == THREAD_EXIT_STATUS_ADDR_1) {
-	 int cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
+	if (t1_addr == THREAD_EXIT_STATUS_ADDR_0 ||
+			t1_addr == THREAD_EXIT_STATUS_ADDR_1) {
+		int cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
 
-	 if (pcx_pkt->data1) {
-	 return_store_ack(pcx_pkt, cpx_pkt, t1_addr, 0, INVALIDATE_ICACHE);
+		if (pcx_pkt->data1) {
+			return_store_ack(pcx_pkt, cpx_pkt, t1_addr, 0, INVALIDATE_ICACHE);
 
-	 mbfw_printf("MBFW_ERROR: thread %d reached bad trap. \r\n", cpu_id);
-	 addr_ptr = (uint32_t *) EXITCODE_ADDR;
-	 *addr_ptr = EXITCODE_BADTRAP;
-	 exit(1);
-	 } else {
-	 mbfw_printf("MBFW_INFO: Thread %d reached good trap.\r\n", cpu_id);
-	 }
+			printf("ERROR: thread %d reached bad trap. \r\n", cpu_id);
+			addr_ptr = (uint32_t *) EXITCODE_ADDR;
+			*addr_ptr = EXITCODE_BADTRAP;
+			exit(1);
+		} else {
+			printf("INFO: Thread %d reached good trap.\r\n", cpu_id);
+		}
 
-	 started_cpus &= ~(1U << cpu_id);
-	 if (started_cpus == 0) {
-	 return_store_ack(pcx_pkt, cpx_pkt, t1_addr, 0, INVALIDATE_ICACHE);
+		started_cpus &= ~(1U << cpu_id);
+		if (started_cpus == 0) {
+			return_store_ack(pcx_pkt, cpx_pkt, t1_addr, 0, INVALIDATE_ICACHE);
 
-	 mbfw_printf("MBFW_INFO: All threads reached good trap. \r\n");
-	 addr_ptr = (uint32_t *) EXITCODE_ADDR;
-	 *addr_ptr = EXITCODE_GOODTRAP;
-	 exit(0);
-	 }
-	 }
-	 #endif*//* ifdef REGRESSION_MODE */
+			printf("INFO: All threads reached good trap. \r\n");
+			addr_ptr = (uint32_t *) EXITCODE_ADDR;
+			*addr_ptr = EXITCODE_GOODTRAP;
+			exit(0);
+		}
+	}
+#endif/* ifdef REGRESSION_MODE */
 
-	//invalidate_other_cache(pcx_pkt, t1_addr);
+	invalidate_other_cache(pcx_pkt, t1_addr);
 
 	cpx_pkt->data0 = 0;
 	cpx_pkt->data1 = 0;
@@ -557,7 +557,7 @@ void return_store_ack(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt,
 
 	if (inv_flag != INVALIDATE_NONE) {
 
-		//invalidate_other_cache(pcx_pkt, t1_addr);
+		invalidate_other_cache(pcx_pkt, t1_addr);
 
 		if (inv_flag & INVALIDATE_DCACHE) {
 			way = invalidate_dcache(core_id, t1_addr);
@@ -855,7 +855,7 @@ static int process_ifill(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 			cpx_pkt->data1 = *(uint32_t *) (mb_addr_ic_align + 0x8);
 			cpx_pkt->data0 = *(uint32_t *) (mb_addr_ic_align + 0xC);
 
-			//invalidate_other_dcache(pcx_pkt, t1_addr_ic_align);
+			invalidate_other_dcache(pcx_pkt, t1_addr_ic_align);
 
 			signed_way = invalidate_dcache(core_id, t1_addr_ic_align);
 			if (signed_way != -1) {
@@ -876,7 +876,7 @@ static int process_ifill(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 			cpx_pkt->data1 = *(uint32_t *) (mb_addr_ic_align + 0x18);
 			cpx_pkt->data0 = *(uint32_t *) (mb_addr_ic_align + 0x1C);
 
-			//invalidate_other_dcache(pcx_pkt, t1_addr_ic_align + T1_DCACHE_LINE_SIZE);
+			invalidate_other_dcache(pcx_pkt, t1_addr_ic_align + T1_DCACHE_LINE_SIZE);
 
 			signed_way = invalidate_dcache(core_id, t1_addr_ic_align
 					+ T1_DCACHE_LINE_SIZE);
@@ -919,7 +919,7 @@ static void process_ifill_fast(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt)
 	cpx_pkt->data1 = *(uint32_t *) (mb_addr + 0x8);
 	cpx_pkt->data0 = *(uint32_t *) (mb_addr + 0xC);
 
-	//invalidate_other_dcache(pcx_pkt, t1_addr);
+	invalidate_other_dcache(pcx_pkt, t1_addr);
 
 	signed_way = invalidate_dcache(core_id, t1_addr);
 	if (signed_way != -1) {
@@ -941,50 +941,12 @@ static void process_ifill_fast(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt)
 	cpx_pkt->data1 = *(uint32_t *) (mb_addr + 0x18);
 	cpx_pkt->data0 = *(uint32_t *) (mb_addr + 0x1C);
 
-	//invalidate_other_dcache(pcx_pkt, t1_addr + T1_DCACHE_LINE_SIZE);
+	invalidate_other_dcache(pcx_pkt, t1_addr + T1_DCACHE_LINE_SIZE);
 
 	signed_way = invalidate_dcache(core_id, t1_addr + T1_DCACHE_LINE_SIZE);
 	if (signed_way != -1) {
 		CPX_PKT_SET_WV(cpx_pkt, 1);
 		CPX_PKT_SET_WAY(cpx_pkt, signed_way);
-	}
-
-	//send_cpx_pkt(core_id, cpx_pkt);
-
-	return;
-}
-
-void return_load_req(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt,
-		taddr_opt_t t1_addr, maddr_t mb_addr, uint32_t preinit_ctrl_flag) {
-	int way;
-	maddr_t mb_addr_qw_align;
-	int core_id;
-
-	core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
-
-	if (mb_addr != MB_INVALID_ADDR) {
-
-		mb_addr_qw_align = mb_addr & MB_ADDR_QWORD_ALIGN_MASK;
-
-		cpx_pkt->data3 = *(uint32_t *) (mb_addr_qw_align + 0x0);
-		cpx_pkt->data2 = *(uint32_t *) (mb_addr_qw_align + 0x4);
-		cpx_pkt->data1 = *(uint32_t *) (mb_addr_qw_align + 0x8);
-		cpx_pkt->data0 = *(uint32_t *) (mb_addr_qw_align + 0xC);
-	}
-
-	CPX_PKT_CTRL_LOAD(cpx_pkt, preinit_ctrl_flag);
-	CPX_PKT_REFLECT_NC_THREAD_ID(cpx_pkt, pcx_pkt);
-	CPX_PKT_REFLECT_PREFETCH(cpx_pkt, pcx_pkt);
-
-	if (PCX_PKT_IS_CACHEABLE(pcx_pkt)) {
-
-		//invalidate_other_icache(pcx_pkt, t1_addr);
-
-		way = invalidate_icache(core_id, t1_addr);
-		if (way != -1) {
-			CPX_PKT_SET_WV(cpx_pkt, 1);
-			CPX_PKT_SET_WAY(cpx_pkt, way);
-		}
 	}
 
 	//send_cpx_pkt(core_id, cpx_pkt);
@@ -1098,67 +1060,68 @@ static void process_int_flush(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) 
 }
 
 // Returns the number of packets to send
-int process(struct pcx_pkt *t1_out, struct cpx_pkt *t1_in) {
-	if (!t1_out || !PCX_PKT_IS_VALID(t1_out)) {
+int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
+	if (!pcx_pkt || !PCX_PKT_IS_VALID(pcx_pkt)) {
 		return -1;
 	}
 
-	uint_t rqtyp = PCX_PKT_GET_RQTYP(t1_out);
+	uint_t rqtyp = PCX_PKT_GET_RQTYP(pcx_pkt);
 
 	// Process common cases (faster processing)
-	if (IS_COMMON_CASE_PCX_PKT(t1_out)) {
+	if (IS_COMMON_CASE_PCX_PKT(pcx_pkt)) {
 		if (rqtyp == PCX_REQ_STORE) {
-			process_store_fast(t1_out, t1_in);
+			process_store_fast(pcx_pkt, cpx_pkt);
 			return 1;
 		} else if (rqtyp == PCX_REQ_LOAD) {
-			process_load_fast(t1_out, t1_in);
+			process_load_fast(pcx_pkt, cpx_pkt);
 			return 1;
 		} else if (rqtyp == PCX_REQ_IFILL) {
-			process_ifill_fast(t1_out, t1_in);
+			process_ifill_fast(pcx_pkt, cpx_pkt);
 			return 2;
 		}
 	}
 
 	// Process non-common cases (normal processing)
 	int num_pkts = 1;
+	int cpu_id = -1;
 
 	switch (rqtyp) {
 
 	case PCX_REQ_LOAD:
-		process_load(t1_out, t1_in); // DONE
+		process_load(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_STORE:
-		if (PCX_PKT_IS_BIS_BST(t1_out)) {
-			process_bis_bst(t1_out, t1_in); // DONE
+		if (PCX_PKT_IS_BIS_BST(pcx_pkt)) {
+			process_bis_bst(pcx_pkt, cpx_pkt); // DONE
 		} else {
-			process_store(t1_out, t1_in); // DONE
+			process_store(pcx_pkt, cpx_pkt); // DONE
 		}
 		break;
 
 	case PCX_REQ_IFILL:
-		num_pkts = process_ifill(t1_out, t1_in); // DONE
+		num_pkts = process_ifill(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_SWAP_LDSTUB:
-		process_swap_ldstub(t1_out, t1_in); // DONE
+		process_swap_ldstub(pcx_pkt, cpx_pkt); // DONE
 		num_pkts = 2;
 		break;
 
 	case PCX_REQ_CAS_LOAD: // DONE
-		int cpu_id = PCX_PKT_GET_CPU_ID(t1_out);
-		if (PCX_PKT_GET_CORE_ID(t1_out) == T1_MASTER_CORE_ID) {
-			cpu_cas1_packet[cpu_id] = pcx_pkt;
+		cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
+		if (PCX_PKT_GET_CORE_ID(pcx_pkt) == T1_MASTER_CORE_ID) {
+			cpu_cas1_packet[cpu_id] = *pcx_pkt;
 			get_remote = 0;
 		} else {
-			cpu_cas1_packet[cpu_id] = pcx_pkt;
+			cpu_cas1_packet[cpu_id] = *pcx_pkt;
 			get_local = 0;
 		}
 		return -1;
 
 	case PCX_REQ_CAS_STORE: // DONE
-		int cpu_id = PCX_PKT_GET_CPU_ID(t1_out);
-		process_cas(&cpu_cas1_packet[cpu_id], t1_out, t1_in);
+		cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
+		process_cas(&cpu_cas1_packet[cpu_id], pcx_pkt, cpx_pkt);
 		get_local = 1;
 #ifdef T1_FPGA_DUAL_CORE
 		get_remote = 1;
@@ -1169,21 +1132,21 @@ int process(struct pcx_pkt *t1_out, struct cpx_pkt *t1_in) {
 		break;
 
 	case PCX_REQ_INT_FLUSH:
-		process_int_flush(t1_out, t1_in);	// DONE
+		process_int_flush(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_FP_1:
-		process_fp_1(t1_out, t1_in);	// DONE
+		process_fp_1(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_FP_2:
-		process_fp_2(t1_out, t1_in);	// DONE
+		process_fp_2(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	default:
 		printf("ERROR: t1_system_emulation_loop(): pcx rqtyp "
 			"0x%x not yet implemented \r\n", rqtyp);
-		print_pcx_pkt(t1_out);
+		print_pcx_pkt(pcx_pkt);
 		return -1;
 	}
 

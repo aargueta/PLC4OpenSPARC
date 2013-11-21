@@ -1,5 +1,5 @@
 #
 # This file is managed by MaxIDE. Do NOT change.
 #
-HEADERS:= firmware/addr_map.h firmware/config.h firmware/fpu.h firmware/iob.h firmware/pcx_cpx.h firmware/reverse_dir.h firmware/softfloat/SPARC-GCC.h firmware/softfloat/milieu.h firmware/softfloat/softfloat.h firmware/types.h firmware/uart.h 
-SOURCES:= SimpleHDLCpuCode.c firmware/addr_map.c firmware/fpu.c firmware/iob.c firmware/pcx_cpx.c firmware/reverse_dir.c firmware/softfloat/softfloat.c firmware/uart.c 
+HEADERS:= firmware/addr_map.h firmware/config.h firmware/fpu.h firmware/iob.h firmware/pcx_cpx.h firmware/process.h firmware/reverse_dir.h firmware/softfloat/SPARC-GCC.h firmware/softfloat/milieu.h firmware/softfloat/softfloat.h firmware/types.h firmware/uart.h 
+SOURCES:= SimpleHDLCpuCode.c firmware/addr_map.c firmware/fpu.c firmware/iob.c firmware/pcx_cpx.c firmware/process.c firmware/reverse_dir.c firmware/softfloat/softfloat.c firmware/uart.c 

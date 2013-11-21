@@ -15,35 +15,34 @@
 
 #include "softfloat/softfloat.h"
 
-#define FP_OPCODE_FADDS 0x41
-#define FP_OPCODE_FADDD 0x42
-#define FP_OPCODE_FSUBS 0x45
-#define FP_OPCODE_FSUBD 0x46
-#define FP_OPCODE_FMULS 0x49
-#define FP_OPCODE_FMULD 0x4a
-#define FP_OPCODE_FDIVS 0x4d
-#define FP_OPCODE_FDIVD 0x4e
+#define FP_OPCODE_FADDS		0x41
+#define FP_OPCODE_FADDD		0x42
+#define FP_OPCODE_FSUBS		0x45
+#define FP_OPCODE_FSUBD		0x46
+#define FP_OPCODE_FMULS		0x49
+#define FP_OPCODE_FMULD		0x4a
+#define FP_OPCODE_FDIVS		0x4d
+#define FP_OPCODE_FDIVD		0x4e
 
-#define FP_OPCODE_FCMPS 0x51
-#define FP_OPCODE_FCMPD 0x52
+#define FP_OPCODE_FCMPS		0x51
+#define FP_OPCODE_FCMPD		0x52
+#define FP_OPCODE_FCMPES	0x55
+#define FP_OPCODE_FCMPED	0x56
 
-#define FP_OPCODE_FCMPES 0x55
-#define FP_OPCODE_FCMPED 0x56
+#define FP_OPCODE_FSTOX 	0x81
+#define FP_OPCODE_FDTOX 	0x82
+#define FP_OPCODE_FSTOI 	0xd1
+#define FP_OPCODE_FDTOI		0xd2
 
-#define FP_OPCODE_FSTOX 0x81
-#define FP_OPCODE_FDTOX 0x82
-#define FP_OPCODE_FSTOI 0xd1
-#define FP_OPCODE_FDTOI 0xd2
+#define FP_OPCODE_FXTOS		0x84
+#define FP_OPCODE_FXTOD		0x88
 
-#define FP_OPCODE_FXTOS 0x84
-#define FP_OPCODE_FXTOD 0x88
-#define FP_OPCODE_FITOS 0xc4
-#define FP_OPCODE_FITOD 0xc8
+#define FP_OPCODE_FITOS		0xc4
+#define FP_OPCODE_FITOD		0xc8
+#define FP_OPCODE_FSTOD		0xc9
+#define FP_OPCODE_FDTOS		0xc6
 
-#define FP_OPCODE_FSTOD 0xc9
-#define FP_OPCODE_FDTOS 0xc6
-
-#define FP_OPCODE_FSMULD 0x69
+#define FP_OPCODE_FSMULD	0x69
 
 /*
  * NOTE: For multi-core support, the following global variables
@@ -192,7 +191,7 @@ void process_fp_1(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 }
 
 void process_fp_2(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
-	float64 fp_rd;
+	float64 fp_rd = 0.;		// inited to suppress compiler warning
 	uint32_t fp_fsr;
 
 	uint_t fp_cmp_fcc;

@@ -158,11 +158,11 @@ endif
 # ==== (IV) C / C++ Flags ====
 # Setup some default C and C++ flags (May be overridden...)
 ifndef DEBUG
-CFLAGS ?=  -g -O3 -Wall -Wextra -fmessage-length=0
-CXXFLAGS ?=  -g -O3 -Wall -Wextra -fmessage-length=0
+CFLAGS ?=  -g -O3 -Wall -Wextra -fmessage-length=0 -Wno-int-to-pointer-cast
+CXXFLAGS ?=  -g -O3 -Wall -Wextra -fmessage-length=0 -Wno-int-to-pointer-cast
 else
-CFLAGS ?=  -g -O0 -Wall -Wextra -fmessage-length=0
-CXXFLAGS ?=  -g -O0 -Wall -Wextra -fmessage-length=0
+CFLAGS ?=  -g -O0 -Wall -Wextra -fmessage-length=0 -Wno-int-to-pointer-cast
+CXXFLAGS ?=  -g -O0 -Wall -Wextra -fmessage-length=0 -Wno-int-to-pointer-cast
 endif
 
 # Final definition of Flags: add MaxCompiler specific things...
