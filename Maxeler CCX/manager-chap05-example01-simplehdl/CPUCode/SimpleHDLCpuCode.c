@@ -15,22 +15,23 @@
 
 #include "firmware/pcx_cpx.h"
 
-#define PKT_SIZE	5
+#define PKT_SIZE		5
+#define VALID_PKT		{0x8,0,0,0,0}
+#define INVALID_PKT		{0,0,0,0,0}
+#define STREAM_ALIGN	16
 
 int main() {
-	int size = 2 * PKT_SIZE; // two packets
+	int size = 2 * PKT_SIZE * STREAM_ALIGN; // two packets
 	int sizeBytes = size * sizeof(uint32_t);
 	uint32_t *dataIn = malloc(sizeBytes);
 	uint32_t *dataInCtl = malloc(sizeBytes);
 	uint32_t *dataOut = malloc(sizeBytes);
 
-	uint32_t ctl_valid[PKT_SIZE];
-	uint32_t ctl_invalid[PKT_SIZE];
+	uint32_t ctl_valid[PKT_SIZE] = VALID_PKT;
+	uint32_t ctl_invalid[PKT_SIZE] = INVALID_PKT;
 
 	for (int i = 0; i < size; i++) {
 		dataIn[i] = 0;
-		ctl_valid[i] = !(i % PKT_SIZE) ? 0x8 : 0x0;
-		ctl_invalid[i] = 0;
 		dataOut[i] = 0;
 	}
 
@@ -44,7 +45,7 @@ int main() {
 
 	// TODO: run initialization code for the T1
 
-	actions.param_N = num_pkts * 5;
+	actions.param_N = num_pkts * PKT_SIZE * STREAM_ALIGN;
 	actions.instream_max_cpx = dataIn;
 	actions.instream_max_cpx_ctl = dataInCtl;
 	actions.outstream_max_pcx = dataOut;
