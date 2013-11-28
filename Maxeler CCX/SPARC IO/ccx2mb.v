@@ -60,7 +60,8 @@ module ccx2mb (
 
 	fsl_cpx_s_exists,
 	fsl_cpx_s_control,
-	fsl_cpx_s_data
+	fsl_cpx_s_data,
+	fsl_cpx_s_valid
 	);
 
     parameter C_EXT_RESET_HIGH = 0;
@@ -100,6 +101,7 @@ module ccx2mb (
     input                    fsl_cpx_s_exists;
     input                    fsl_cpx_s_control;
     input [`FSL_D_WIDTH-1:0] fsl_cpx_s_data;
+	 input						  fsl_cpx_s_valid;
 
     //=============================================
     // Wire definitions for outputs
@@ -146,7 +148,7 @@ module ccx2mb (
 
 	    // Inputs
 	    .rclk(rclk),
-	    .reset_l(reset_l_int),
+	    .reset_l(reset_l),//_int),
 
 	    .spc_pcx_data_pa(spc_pcx_data_pa),
 	    .spc_pcx_atom_pq(spc_pcx_atom_pq),
@@ -167,11 +169,12 @@ module ccx2mb (
 
 	    // Inputs
 	    .rclk(rclk),
-	    .reset_l(reset_l_int),
+	    .reset_l(reset_l),//_int),
 
 	    .fsl_cpx_s_exists(fsl_cpx_s_exists),
 	    .fsl_cpx_s_control(fsl_cpx_s_control),
-	    .fsl_cpx_s_data(fsl_cpx_s_data)
+	    .fsl_cpx_s_data(fsl_cpx_s_data),
+		 .fsl_cpx_s_valid(fsl_cpx_s_valid)
 	);
 
 endmodule

@@ -50,7 +50,8 @@ module mb2cpx (
 
 	fsl_cpx_s_exists,
 	fsl_cpx_s_control,
-	fsl_cpx_s_data
+	fsl_cpx_s_data,
+	fsl_cpx_s_valid
 	);
 
     parameter CPX_GEAR_RATIO = (((`CPX_WIDTH+1-1)/`FSL_D_WIDTH)+1);
@@ -76,6 +77,7 @@ module mb2cpx (
     input                    fsl_cpx_s_exists;
     input                    fsl_cpx_s_control;
     input [`FSL_D_WIDTH-1:0] fsl_cpx_s_data;
+	 input 						  fsl_cpx_s_valid;
 
     //=============================================
     // Wire definitions for outputs
@@ -98,7 +100,7 @@ module mb2cpx (
 
     // Input Shift Register:  Shift 32-bit chunks into wider shift register
     always @(posedge rclk) begin
-	fsl_input_reg <= (fsl_cpx_s_exists && cpx_fsl_s_read) ?
+	fsl_input_reg <= (fsl_cpx_s_exists && cpx_fsl_s_read && fsl_cpx_s_valid) ?
 		{fsl_input_reg[(CPX_GEAR_RATIO -1)*`FSL_D_WIDTH-1:0],
 			fsl_cpx_s_data} :
 		fsl_input_reg;

@@ -79,8 +79,26 @@ module opensparc_t1_tb;
 	
 	initial begin
 		#200;
-		max_pcx_read = 1;
-		
+		//max_pcx_read = 1;
+		repeat(2)begin
+			max_cpx_valid = 1;
+			max_cpx_ctl_valid = 1;
+			max_cpx_data = 32'h00017000; 
+			max_cpx_ctl_data = 32'hFFFFFFFF;
+			#20;
+			max_cpx_data = 32'h00000000;
+			max_cpx_ctl_data = 32'h00000000;
+			
+			#20 max_cpx_data = 32'h00010001;
+			#20 max_cpx_data = 32'h00000000;
+			#20 max_cpx_data = 32'h00010001;
+			#20 max_cpx_data = 32'h00000002;
+			#20 max_cpx_data = 32'h00000000;
+			#20 max_cpx_data = 32'h00000000;
+			#20 max_cpx_valid = 0;
+			max_cpx_ctl_valid = 0;
+			#5000;
+		end
 	end
       
 endmodule

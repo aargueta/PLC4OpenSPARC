@@ -20,6 +20,7 @@
 // ========== Copyright Header End ============================================
 module iop_fpga(reset_l, gclk,
 	cpu_id,
+	reset_done,
 	spc_pcx_req_pq,
 	spc_pcx_atom_pq,
 	spc_pcx_data_pa,
@@ -39,6 +40,7 @@ input	[144:0]	cpx_spc_data_cx2;
 input		reset_l;
 input		gclk;
 input	[3:0] 	cpu_id;
+output	reset_done;
 
 parameter C_EXT_RESET_HIGH = 0;
 
@@ -108,7 +110,7 @@ always @(posedge gclk) begin
     if(reset_delay != 8'hff)
       reset_delay <= reset_delay + 8'b1;
 end
-
+assign reset_done = &reset_delay;
 assign cluster_cken = (reset_delay > 8'd20) ? 1'b1 : 1'b0;
 assign ctu_tst_pre_grst_l = (reset_delay > 8'd60) ? 1'b1 : 1'b0;
 assign gdbginit_l = (reset_delay > 8'd120) ? 1'b1 : 1'b0;

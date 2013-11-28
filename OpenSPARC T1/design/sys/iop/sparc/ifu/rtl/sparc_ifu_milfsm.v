@@ -42,7 +42,7 @@
 //`define MIL_R  2
 //`define MIL_A  1
 //`define MIL_F  0
-
+`define DEFINE_0IN
 
 module sparc_ifu_milfsm(/*AUTOARG*/
    // Outputs
@@ -251,6 +251,7 @@ module sparc_ifu_milfsm(/*AUTOARG*/
 	          begin
                // synopsys translate_off
 		     // 0in <fire -message "MILSTATE, Error: SPARC/IFU/MILFSM: unknown state!"
+
 `ifdef DEFINE_0IN
 `else
                if ($time > (4* `CMP_CLK_PERIOD))

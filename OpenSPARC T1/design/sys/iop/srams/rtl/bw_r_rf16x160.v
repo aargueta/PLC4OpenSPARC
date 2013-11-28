@@ -27,7 +27,7 @@
 `ifdef FPGA_SYN 
 `define FPGA_SYN_16x160
 `endif
-
+`undef DEFINE_0IN
 module bw_r_rf16x160(/*AUTOARG*/
    // Outputs
    dout, so_w, so_r, 
@@ -550,7 +550,7 @@ bw_r_rf16x2 arr19(
 `else
               if (rdptr_d1 == 4'bx)
                 begin
-                  $error("rf_error"," read pointer error %h ", rdptr_d1[3:0]);
+                  $display("rf_error"," read pointer error %h ", rdptr_d1[3:0]);
                 end
 `endif
 
@@ -620,15 +620,15 @@ bw_r_rf16x2 arr19(
 `else
           if (wr_en_d1 == 1'bx)
             begin
-              $error("rf_error"," write enable error %h ", wr_en_d1);
+              $display("rf_error"," write enable error %h ", wr_en_d1);
             end
           if (word_wen_d1 == 4'bx)
             begin
-              $error("rf_error"," word enable error %h ", word_wen_d1[3:0]);
+              $display("rf_error"," word enable error %h ", word_wen_d1[3:0]);
             end
           if (byte_wen_d1 == 20'bx)
             begin
-              $error("rf_error"," byte enable error %h ", byte_wen_d1[19:0]);
+              $display("rf_error"," byte enable error %h ", byte_wen_d1[19:0]);
             end
 `endif
 
@@ -643,7 +643,7 @@ bw_r_rf16x2 arr19(
 `else
               if (wrptr_d1 == 4'bx)
                 begin
-                  $error("rf_error"," write pointer error %h ", wrptr_d1[3:0]);
+                  $display("rf_error"," write pointer error %h ", wrptr_d1[3:0]);
                 end
 `endif
 

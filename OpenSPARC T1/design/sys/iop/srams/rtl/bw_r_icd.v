@@ -52,6 +52,7 @@
 `include "ifu.h"
 
 //FPGA_SYN enables all FPGA related modifications
+`define FPGA_SYN
 `ifdef FPGA_SYN 
 `define FPGA_SYN_ICD
 `endif
@@ -595,7 +596,7 @@ module bw_r_icd(/*AUTOARG*/
    
    assign top_index = {index_f[11:3] , 1'b1};
 
-`ifdef DEFINE_0IN
+`ifdef NOPENOPENOPE //DEFINE_0IN
 // physical implmentation: ignore this and use else portion
    
    wire [15:0] we_wrd = ({ 3'b0,worden_f[3], 3'b0,worden_f[2],

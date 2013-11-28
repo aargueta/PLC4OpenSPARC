@@ -26,7 +26,7 @@
 */
 
 `include "ifu.h"
-
+`define DEFINE_0IN
 module sparc_ifu_thrfsm(/*AUTOARG*/
    // Outputs
    so, thr_state, 

@@ -23,7 +23,7 @@
 `include "ifu.h"
 `include "tlu.h"
 `include "lsu.h"
-	 
+`define FPGA_SYN_NO_SPU
 module sparc (/*AUTOARG*/
    // Outputs
    spc_pcx_req_pq, spc_pcx_atom_pq, spc_pcx_data_pa, spc_sscan_so, 

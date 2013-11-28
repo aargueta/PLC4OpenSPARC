@@ -258,7 +258,7 @@ always @ (posedge clk)
 						`ifdef MODELSIM
                                 $display("rf32x152b_error"," read pointer error (X) %h ", rd_adr[4:0]);
 						`else
-                                $error("rf32x152b_error"," read pointer error (X) %h ", rd_adr[4:0]);
+                                $display("rf32x152b_error"," read pointer error (X) %h ", rd_adr[4:0]);
 						`endif		
 `endif
 `endif
@@ -275,7 +275,7 @@ always @ (posedge clk)
 						`ifdef MODELSIM
 	                            $display("rf32x152b_error"," write error (X) %h ", wr_adr[4:0]);
 						`else
-                                $error("rf32x152b_error"," write error (X) %h ", wr_adr[4:0]);
+                                $display("rf32x152b_error"," write error (X) %h ", wr_adr[4:0]);
 						`endif		
 `endif
 `endif

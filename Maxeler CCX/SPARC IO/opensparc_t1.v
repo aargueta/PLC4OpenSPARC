@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    06:19:02 11/11/2013 
-// Design Name: 
-// Module Name:    opensparc_t1 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 `ifndef FSL_D_WIDTH
 `define FSL_D_WIDTH  32
 `endif
@@ -30,71 +10,36 @@
 `define CPX_WIDTH   145
 `endif
 `define MAX_D_WIDTH 32
+`undef DEFINE_0IN
 module opensparc_t1(
-	// Outputs
-	max_cpx_stall, 
-
-	max_cpx_ctl_stall, 
-
-	max_pcx_empty,
-	max_pcx_almost_empty,
-	max_pcx_data,
-
-	// Inputs
-	gclk,
-	reset,
-
-	max_cpx_valid,
-	max_cpx_data,
-
-	max_cpx_ctl_valid,
-	max_cpx_ctl_data,
-
-	max_pcx_read
- );
- 
-	//=============================================
-	// Outputs
-
-	// Maxeler Interface
-	output max_cpx_stall;
-    output max_cpx_ctl_stall;
-
-	output max_pcx_empty;
-	output max_pcx_almost_empty;
-	output [`MAX_D_WIDTH-1:0] max_pcx_data;
-
-	//=============================================
-	// Inputs
-	input gclk;
-	input reset;
-
-	// Maxeler Interface
-	input max_cpx_valid;
-	input [`MAX_D_WIDTH-1:0] max_cpx_data;
-	input max_cpx_ctl_valid;
-	input [`MAX_D_WIDTH-1:0] max_cpx_ctl_data;
-
-	input max_pcx_read;
+	clk,
+	rst,
 	
+	cpx_empty,
+	cpx_almost_empty,
+	cpx_read,
+	cpx_data,
+
+	pcx_valid,
+	pcx_stall,
+	pcx_data
+);
 	parameter CPU_ID = 4'b0000;
+	input clk;
+	input rst;
 	
-    // SPARC/PCX interface
-    // DUMMY SPARC LOGIC
-    /*
-    reg [15:0] packet_count;
-    reg [1:0] idle_count;
-    always @(posedge gclk)begin
-    	if(reset)begin
-    		packet_count <= 16'd0;
-    		idle_count <= 16'd0;
-		end else
-			{packet_count, idle_count} <= {packet_count, idle_count} + 18'd1;
-    end 
-	*/
-    wire [`PCX_WIDTH-1:0] spc_pcx_data_pa;// = {{3{16'hABCD, packet_count}}, 12'h123, packet_count};
-    wire                  spc_pcx_atom_pq;// = 0;
-    wire [4:0]            spc_pcx_req_pq;// = {4'b0000, &idle_count};
+	input cpx_empty;
+	input cpx_almost_empty;
+	output cpx_read;
+	input [64:0] cpx_data;
+
+	output pcx_valid;
+	input pcx_stall;
+	output [31:0] pcx_data;
+
+	wire [`PCX_WIDTH-1:0] spc_pcx_data_pa;
+   wire                  spc_pcx_atom_pq;
+   wire [4:0]            spc_pcx_req_pq;
 	
     // SPARC/PCX interface
     wire [4:0] pcx_spc_grant_px;
@@ -103,37 +48,59 @@ module opensparc_t1(
     wire                  cpx_spc_data_rdy_cx2;
     wire [`CPX_WIDTH-1:0] cpx_spc_data_cx2;
 	 
+	// Reset counter
+	wire reset_done;
+	
+	wire cpx_read;
 	ccx2max ccx(
+		//Outputs
 		.pcx_spc_grant_px(pcx_spc_grant_px), 
+
 		.cpx_spc_data_rdy_cx2(cpx_spc_data_rdy_cx2), 
 		.cpx_spc_data_cx2(cpx_spc_data_cx2), 
-		.max_cpx_stall(max_cpx_stall), 
-		.max_cpx_ctl_stall(max_cpx_ctl_stall), 
-		.max_pcx_empty(max_pcx_empty), 
-		.max_pcx_almost_empty(max_pcx_almost_empty), 
-		.max_pcx_data(max_pcx_data), 
-		.gclk(gclk), 
-		.reset(reset), 
+
+		.max_cpx_read(cpx_read),
+
+		.max_pcx_valid(pcx_valid), 
+		.max_pcx_data(pcx_data), 
+
+		//Inputs
+		.gclk(clk), 
+		.reset(rst), 
+		.core_reset_done(reset_done),
+
 		.spc_pcx_data_pa(spc_pcx_data_pa), 
 		.spc_pcx_atom_pq(spc_pcx_atom_pq), 
 		.spc_pcx_req_pq(spc_pcx_req_pq), 
-		.max_cpx_valid(max_cpx_valid), 
-		.max_cpx_data(max_cpx_data), 
-		.max_cpx_ctl_valid(max_cpx_ctl_valid), 
-		.max_cpx_ctl_data(max_cpx_ctl_data), 
-		.max_pcx_read(max_pcx_read)
+
+		.max_cpx_valid(max_valid), 
+		.max_cpx_data(cpx_data[31:0]), 
+		.max_cpx_ctl_data(cpx_data[63:32]), 
+		.max_cpx_empty(cpx_empty),
+		.max_cpx_almost_empty(cpx_almost_empty),
+
+		.max_pcx_stall(pcx_stall)
 	);
 
-	iop_fpga(
-		.reset_l(~reset), 
-		.gclk(gclk),
+	/*
+	// Dummy reply logic
+	assign spc_pcx_atom_pq = 0;
+	assign spc_pcx_req_pq = {cpx_spc_data_rdy_cx2, 4'b0000};
+	always @(posedge clk)begin
+		spc_pcx_data_pa = {5'h17, cpx_spc_data_cx2[118:0]};
+	end	*/
+
+	iop_fpga sparc(
+		.reset_l(~rst), 
+		.gclk(clk),
 		.cpu_id(CPU_ID),
 		.spc_pcx_req_pq(spc_pcx_req_pq),
 		.spc_pcx_atom_pq(spc_pcx_atom_pq),
 		.spc_pcx_data_pa(spc_pcx_data_pa),
 		.pcx_spc_grant_px(pcx_spc_grant_px),
 		.cpx_spc_data_rdy_cx2(cpx_spc_data_rdy_cx2),
-		.cpx_spc_data_cx2(cpx_spc_data_cx2)
+		.cpx_spc_data_cx2(cpx_spc_data_cx2),
+		.reset_done(reset_done)
 	);
 
 endmodule
