@@ -1,0 +1,55 @@
+/**
+ * Document: Manager Compiler Tutorial (maxcompiler-manager-tutorial.pdf)
+ * Chapter: 5      Example: 1      Name: Simple HDL
+ * MaxFile name: SimpleHDL
+ * Summary:
+ *     Manager design that creates an instance of the custom HDL node and
+ *     wraps it in a Manager block. All IO is between the CPU and the DFE.
+ */
+package opensparct1;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.ManagerClock;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLBlock;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.CustomHDLNode;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
+
+class OpenSPARCT1Manager extends CustomManager {
+
+	OpenSPARCT1Manager(EngineParameters engineParameters) {
+		super(engineParameters);
+		this.config.setDefaultStreamClockFrequency(50);
+		CustomHDLNode hdlNode = new OpenSPARCT1Node(this, "openSPARCT1Node");
+		CustomHDLBlock hdlBlock = addCustomHDL(hdlNode);
+
+		hdlBlock.getInput("cpx") <== addStreamFromCPU("cpx");
+		addStreamToCPU("pcx") <== hdlBlock.getOutput("pcx");
+	}
+
+	private static EngineInterface interfaceDefault() {
+		EngineInterface ei = new EngineInterface();
+
+		InterfaceParam n = ei.addParam("N", CPUTypes.INT);
+		InterfaceParam no = ei.addParam("NO", CPUTypes.INT);
+
+		ei.setStream("cpx", CPUTypes.UINT64, n * CPUTypes.UINT64.sizeInBytes());
+		ei.setStream("pcx", CPUTypes.UINT32, no * CPUTypes.UINT32.sizeInBytes());
+
+		return ei;
+	}
+
+	public static void main(String[] args) {
+		OpenSPARCT1Manager m = new OpenSPARCT1Manager(new EngineParameters(args));
+		m.createSLiCinterface(interfaceDefault());
+		m.config.setDefaultStreamClockFrequency(50);
+		ManagerClock clk = m.generateStreamClock("clk", 50);
+		m.setIDFELinkClock(clk);
+
+		m.build();
+	}
+
+
+}
