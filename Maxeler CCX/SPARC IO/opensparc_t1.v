@@ -31,7 +31,7 @@ module opensparc_t1(
 	input cpx_empty;
 	input cpx_almost_empty;
 	output cpx_read;
-	input [64:0] cpx_data;
+	input [63:0] cpx_data;
 
 	output pcx_valid;
 	input pcx_stall;

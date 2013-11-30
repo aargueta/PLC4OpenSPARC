@@ -7,7 +7,7 @@
 // Create Date:   03:59:04 11/13/2013
 // Design Name:   opensparc_t1
 // Module Name:   F:/GitHub Repos/PLC4OpenSPARC/Maxeler CCX/SPARC IO/opensparc_t1_tb.v
-// Project Name:  max_ccx_hw
+// Project Name:  ccx_hw
 // Target Device:  
 // Tool versions:  
 // Description: 
@@ -25,80 +25,92 @@
 module opensparc_t1_tb;
 
 	// Inputs
-	reg gclk;
-	reg reset;
-	reg max_cpx_valid;
-	reg [31:0] max_cpx_data;
-	reg max_cpx_ctl_valid;
-	reg [31:0] max_cpx_ctl_data;
-	reg max_pcx_read;
+	reg clk;
+	reg rst;
+	reg cpx_empty;
+	reg cpx_almost_empty;
+	reg [31:0] cpx_ctl;
+	reg [31:0] cpx_data;
+	reg pcx_stall;
 
 	// Outputs
-	wire max_cpx_stall;
-	wire max_cpx_ctl_stall;
-	wire max_pcx_empty;
-	wire max_pcx_almost_empty;
-	wire [31:0] max_pcx_data;
+	wire cpx_read;
+	wire pcx_valid;
+	wire [31:0] pcx_data;
 
 	// Instantiate the Unit Under Test (UUT)
 	opensparc_t1 uut (
-		.max_cpx_stall(max_cpx_stall), 
-		.max_cpx_ctl_stall(max_cpx_ctl_stall), 
-		.max_pcx_empty(max_pcx_empty), 
-		.max_pcx_almost_empty(max_pcx_almost_empty), 
-		.max_pcx_data(max_pcx_data), 
-		.gclk(gclk), 
-		.reset(reset), 
-		.max_cpx_valid(max_cpx_valid), 
-		.max_cpx_data(max_cpx_data), 
-		.max_cpx_ctl_valid(max_cpx_ctl_valid), 
-		.max_cpx_ctl_data(max_cpx_ctl_data), 
-		.max_pcx_read(max_pcx_read)
+		.clk(clk),
+		.rst(rst),
+	
+		.cpx_empty(cpx_empty),
+		.cpx_almost_empty(cpx_almost_empty),
+		.cpx_read(cpx_read),
+		.cpx_data({cpx_ctl, cpx_data}),
+
+		.pcx_valid(pcx_valid),
+		.pcx_stall(pcx_stall),
+		.pcx_data(pcx_data)
 	);
 
 	initial begin
 		// Initialize Inputs
-		gclk = 0;
-		reset = 1;
-		max_cpx_valid = 0;
-		max_cpx_data = 0;
-		max_cpx_ctl_valid = 0;
-		max_cpx_ctl_data = 0;
-		max_pcx_read = 0;
+		clk = 0;
+		rst = 1;
+		cpx_empty = 0;
+		cpx_almost_empty = 0;
+		cpx_ctl = 0;
+		cpx_data = 0;
+		pcx_stall = 0;
 
-		// Wait 100 ns for global reset to finish
+		// Wait 100 ns for global rst to finish
 		#100;
       
 		repeat(4)
-			#10 gclk = ~gclk;
-		reset = 0;
+			#5 clk = ~clk;
+		rst = 0;
 		forever
-			#10 gclk = ~gclk;
+			#5 clk = ~clk;
 
 	end
 	
 	initial begin
 		#200;
-		//max_pcx_read = 1;
-		repeat(2)begin
-			max_cpx_valid = 1;
-			max_cpx_ctl_valid = 1;
-			max_cpx_data = 32'h00017000; 
-			max_cpx_ctl_data = 32'hFFFFFFFF;
-			#20;
-			max_cpx_data = 32'h00000000;
-			max_cpx_ctl_data = 32'h00000000;
-			
-			#20 max_cpx_data = 32'h00010001;
-			#20 max_cpx_data = 32'h00000000;
-			#20 max_cpx_data = 32'h00010001;
-			#20 max_cpx_data = 32'h00000002;
-			#20 max_cpx_data = 32'h00000000;
-			#20 max_cpx_data = 32'h00000000;
-			#20 max_cpx_valid = 0;
-			max_cpx_ctl_valid = 0;
-			#5000;
-		end
+		while(~cpx_read)
+			#10;
+
+		cpx_empty = 0;
+		cpx_ctl = 32'h00000018;
+		cpx_data = 32'h00017000; 
+		#10 cpx_data = 32'h00000000;
+			cpx_ctl = 32'h00000010;
+		
+		#10 cpx_data = 32'h00010001;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00010001;
+		#10 cpx_data = 32'h00000002;
+			cpx_ctl = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_empty = 1;
+		
+		while(~pcx_valid)
+			#10;
+
+		cpx_empty = 0;
+		cpx_ctl = 32'h00000018;
+		cpx_data = 32'h00011904; 
+		#10 cpx_data = 32'h38008030;
+			cpx_ctl = 32'h00000010;
+		
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+			cpx_ctl = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_data = 32'h00000000;
+		#10 cpx_empty = 1;
 	end
       
 endmodule

@@ -123,7 +123,7 @@ module ccx2max(
 
 		.fsl_cpx_s_exists(core_reset_done & ~max_cpx_empty),
 		.fsl_cpx_s_control(max_cpx_ctl_data[3]),
-		.fsl_cpx_s_data({max_cpx_empty, max_cpx_almost_empty, max_cpx_data[29:0]}),
+		.fsl_cpx_s_data(max_cpx_data),
 		.fsl_cpx_s_valid(max_cpx_ctl_data[4])
 	);
 endmodule
