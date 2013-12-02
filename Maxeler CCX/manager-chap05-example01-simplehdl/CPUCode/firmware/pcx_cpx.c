@@ -87,6 +87,9 @@ void add_cpx_ctl(struct cpx_pkt* cpx_pkt, struct max_cpx_pkt* max_cpx_pkt){
 	max_cpx_pkt->data2 = 0x1000000000 | cpx_pkt->data2;
 	max_cpx_pkt->data1 = 0x1000000000 | cpx_pkt->data1;
 	max_cpx_pkt->data0 = 0x1000000000 | cpx_pkt->data0;
+	max_cpx_pkt->waste2 = 0x0000000000;
+	max_cpx_pkt->waste1 = 0x0000000000;
+	max_cpx_pkt->waste0 = 0x0000000000;
 }
 
 void cpx_pkt_init(struct cpx_pkt *cpx_pkt) {

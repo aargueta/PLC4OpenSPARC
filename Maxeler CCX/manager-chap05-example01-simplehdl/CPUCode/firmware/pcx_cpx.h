@@ -249,6 +249,9 @@ struct max_cpx_pkt{
 	uint64_t data2;
 	uint64_t data1;
 	uint64_t data0;
+	uint64_t waste2;
+	uint64_t waste1;
+	uint64_t waste0;
 };
 
 struct max_mem_config{
