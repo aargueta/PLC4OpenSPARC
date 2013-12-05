@@ -79,6 +79,7 @@ module plc_checker (
     parameter DE = 4'd3;
     parameter LO = 4'd4;
     parameter LE = 4'd5;
+    parameter IDLE = 4'd6;
 
     reg [DATA_SIZE-1:0] data_o;                 // register to save orig data
     reg [3:0] state;
@@ -113,101 +114,117 @@ module plc_checker (
      *
      */
 
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk) begin
 
         //Defaults, works with vhdl, should with verilog?
         // because all these que overwritten appropriately fro next cycle
         if (rst) begin
-            addr_out  <= 0;
-            way_out   <= 0;
             plc_error <= 1'b0;     //unless we encounter one
-            read_en   <= 1'b0;
-            state     <= FA;
-            next      <= 1'b0;
-            data_o      <= ddata;
+            state     <= IDLE;
+            data_o    <= ddata;
         end else begin
             // Note that data in ddata is (latched not flopped)
             // may allows us to do this pipelining.
-            case(state)
+            case (state)
+
             // First Address
-            FA:begin
-                if(start)begin
-                    addr_out    <= addr_tuple[2*ADDR_WIDTH-1:ADDR_WIDTH];  //every cycle we will have new address
-                    way_out     <= way_tuple[2*WAY_WIDTH-1:WAY_WIDTH];      //every cycle we will have new address
+            IDLE: begin
+                if (start) begin
                     plc_error   <= 1'b0;
-                    state       <= SA;
-                    read_en     <= 1'b1;
-                    next        <= 1'b0;
+                    state       <= FA;
                     data_o      <= data_o;
                 end
             end
 
+            FA: begin
+                    plc_error   <= 1'b0;
+                    state       <= SA;
+                    data_o      <= data_o;
+            end
+
             //Second Address
-            SA:begin
-                addr_out    <= addr_tuple[ADDR_WIDTH-1:0]; //every cycle we will have new address
-                way_out     <= way_tuple[WAY_WIDTH-1:0];   //every cycle we will have new address
+            SA: begin
                 plc_error   <= 1'b0;
-                read_en     <= 1'b1;
                 state       <= last? LO : DO;     // not that last would have been loaded on previous fetch
-                next        <= 1'b1;
                 data_o      <= data_o;              // get new tuple if there is one
             end
 
             // Data Read O
-            DO:begin
-                addr_out    <= addr_tuple[2*ADDR_WIDTH-1:ADDR_WIDTH];
-                way_out     <= way_tuple[2*WAY_WIDTH-1:WAY_WIDTH];
+            DO: begin
                 plc_error   <= 1'b0;
-                read_en     <= 1'b1;
                 state       <= DE;
-                next        <= 1'b0;
                 data_o      <= ddata;
             end
 
             // Data Read E
-            DE:begin
-                addr_out    <= addr_tuple[ADDR_WIDTH-1:0];
-                way_out     <= way_tuple[WAY_WIDTH-1:0];
+            DE: begin
                 plc_error   <= (data_o != ddata);
-                read_en     <= 1'b1;
                 state       <= last? LO : DO;
-                next        <= 1'b1;          // get new tuple if there is one
                 data_o      <= data_o;
             end
 
             // Last Read O
-            LO:begin
-                addr_out    <= addr_out;
-                way_out     <= way_out;
+            LO: begin
                 plc_error   <= 1'b0;
-                read_en     <= 1'b0;
                 state       <= LE;
-                next        <= 1'b0;
                 data_o      <= ddata;       // save the data of original
             end
 
             // Last Read E
-            LE:begin
-                addr_out    <= addr_out;
-                way_out     <= way_out;
+            LE: begin
                 plc_error   <= (data_o != ddata);
-                read_en     <= 1'b0;
-                state       <= FA;
-                next        <= 1'b0;
+                state       <= IDLE;
                 data_o      <= data_o;
             end //! Why is this like this?
 
-            default:begin
-                addr_out    <= 0;
-                way_out     <= way_out;
+            default: begin
                 plc_error   <= 1'b0;
-                read_en     <= 1'b0;
-                state       <= FA;
-                next        <= 1'b0;
+                state       <= IDLE;
                 data_o      <= data_o;
             end
 			endcase
         end // else
+    end
+
+    always @(*) begin
+        addr_out = 'd0;
+        way_out  = 'd0;
+        read_en = 1'b0;
+        next = 1'b0;
+
+        case(state)
+            // First Address
+            FA:begin
+                addr_out = addr_tuple[2*ADDR_WIDTH-1:ADDR_WIDTH];  //every cycle we will have new address
+                way_out  = way_tuple [2*WAY_WIDTH-1:WAY_WIDTH];      //every cycle we will have new address
+                read_en = 1'b1;
+                next = 1'b0;
+            end
+
+            //Second Address
+            SA:begin
+                addr_out = addr_tuple[ADDR_WIDTH-1:0]; //every cycle we will have new address
+                way_out  = way_tuple [WAY_WIDTH-1:0];   //every cycle we will have new address
+                read_en = 1'b1;
+                next = 1'b1;
+            end
+
+            // Data Read O
+            DO:begin
+                addr_out = addr_tuple[2*ADDR_WIDTH-1:ADDR_WIDTH];
+                way_out  = way_tuple [2*WAY_WIDTH-1:WAY_WIDTH];
+                read_en = 1'b1;
+                next = 1'b0;
+            end
+
+            // Data Read E
+            DE:begin
+                addr_out = addr_tuple[ADDR_WIDTH-1:0];
+                way_out  = way_tuple [WAY_WIDTH-1:0];
+                read_en = 1'b1;
+                next = 1'b1;
+            end
+        endcase
     end
 
 endmodule
@@ -255,53 +272,36 @@ module plc_list (
     reg [LIST_CAP_BITS-1:0] fetch_ptr;              // current pointer used to output addr tuples
     wire                    list_full = &size;
 
-    reg                     add_error, store_error;
-
-
 // List memory & Add
-	genvar i;
-    generate 
-        for (i = 0; i < LIST_CAP; i = i+1) begin:RESET_LIST_WAYS
-            always @(posedge clk, posedge rst) begin
-					if(rst)begin
-						  list[i] <= 0;
-						  ways[i] <= 0;
-					end
-				end
-        end
-    endgenerate
-    
-    always @(posedge clk, posedge rst) begin
+	integer i;
+    always @(posedge clk) begin
         if (rst) begin
+            for (i = 0; i < LIST_CAP; i = i+1) begin
+                  list[i] <= 'd0;
+                  ways[i] <= 'd0;
+            end
             size <= 'd0;
             add_done  <= 1'b0;
-            add_error <= 1'b0;
         end else if (add_flag) begin    // assumes no duplicates
             if (~list_full) begin
                 list[size] <= add_addr_tuple;
                 ways[size] <= add_way_tuple;
-                size <= size + 1;
+                size <= size + 'd1;
                 add_done  <= 1'b1;
-                add_error <= 1'b0;
             end else begin
                 size <= size;
                 add_done <= 1'b1;
-                add_error <= 1'b1;
             end
         end else begin
             add_done <= 1'b0;
-				add_error <= add_error;
         end
     end
 
-
-    //! Need to implement pause so that it can send the same index again
-
+// Fetch
     always @(*) begin
         last_flag = (fetch_ptr == size);
     end
-// Fetch
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             fetch_addr_tuple <= 0;
 			fetch_way_tuple <= 0;
@@ -341,30 +341,33 @@ module plc_list (
 // Search & Store & plc_check_flag
 
     wire [ADDR_WIDTH-1:0]   search_addr = store_addr;       // address to look for
-    wire [WAY_WIDTH-1:0]    search_way  = store_addr_w;      // address to look for
+    wire [WAY_WIDTH-1:0]    search_way  = store_addr_w;     // address to look for
     wire [LIST_CAP-1:0]     search_result;
     wire                    search_hit = |search_result;    // the address was found, used to ctrl the up-down counters
 
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             store_counter <= 'd0;
-            plc_check_flag <= 1'b0;
             store_done <= 1'b0;
-            store_error <= 1'b0; //! Remove dead wire
         end else if (store_flag) begin
             store_done <= 1'b1;
-            store_error <= 1'b0;
             if (search_hit) begin
                 store_counter <= store_counter ^ search_result;
-                plc_check_flag <= !(|(store_counter ^ search_result));
             end else begin
                 store_counter <= store_counter;
-                plc_check_flag <= 1'b0;
             end
         end else begin
-            plc_check_flag <= 1'b0;
             store_done <= 1'b0;
-            store_error <= 1'b0;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (rst) begin
+            plc_check_flag <= 1'b0;
+        end else if (search_hit & store_done) begin
+            plc_check_flag <= !(|(store_counter ^ search_result));
+        end else begin
+            plc_check_flag <= 1'b0;
         end
     end
 
@@ -373,7 +376,7 @@ module plc_list (
     genvar g;
     generate
         for (g = 0; g < LIST_CAP; g = g+1) begin: SEARCH
-            assign search_result[g] = store_flag & (((list[g][2*ADDR_WIDTH-1:ADDR_WIDTH] == search_addr) &&
+            assign search_result[g] = (((list[g][2*ADDR_WIDTH-1:ADDR_WIDTH] == search_addr) &&
                                     (ways[g][2*WAY_WIDTH-1:WAY_WIDTH] == search_way)) ||
                                 ((list[g][ADDR_WIDTH-1:0] == search_addr) &&
                                     (ways[g][2*WAY_WIDTH-1:0] == search_way)));
@@ -382,16 +385,12 @@ module plc_list (
 
 // Error
     assign req_error = | {
-        add_error,
-        store_error,
         ~((add_flag ^ fetch_flag) ^ (add_flag ^ store_flag) ^ (fetch_flag ^ store_flag))
     };
 
 `ifdef DEBUG
 // Debug
     assign d_error = {
-        add_error,
-        store_error,
         ~((add_flag ^ fetch_flag) ^ (add_flag ^ store_flag) ^ (fetch_flag ^ store_flag))
     };
 `endif

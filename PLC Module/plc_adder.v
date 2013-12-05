@@ -22,8 +22,8 @@ module plc_adder(
     parameter WXO   = 2'b01;    // Wait for X
     parameter WXE   = 2'b10;    // Wait for X'
 
-    always@(posedge  clk, posedge rst) begin
-        if(rst) begin
+    always @(posedge  clk) begin
+        if (rst) begin
             state <= IDLE;
             add_addr_tuple <= 0;
             add_way_tuple <= 0;
@@ -33,7 +33,7 @@ module plc_adder(
             add_addr_tuple <= add_addr_tuple;
             add_way_tuple <= add_way_tuple;
             add_flag <= 1'b0;
-        end else if(write_en)begin
+        end else if (write_en)begin
 				if (state == WXO) begin
 					state <= WXE;
 					add_addr_tuple	<= {addr, add_addr_tuple[ADDR_WIDTH-1:0]};
@@ -45,12 +45,12 @@ module plc_adder(
 					add_way_tuple	<= {add_way_tuple[2*WAY_WIDTH-1:WAY_WIDTH], way};
 					add_flag <= 1'b1;
 				end
-			end else begin
-					state <= state;
-					add_addr_tuple	<= add_addr_tuple;
-					add_way_tuple	<= add_way_tuple;
-					add_flag <= add_flag;			
-			end
+		end else begin
+				state <= state;
+				add_addr_tuple	<= add_addr_tuple;
+				add_way_tuple	<= add_way_tuple;
+				add_flag <= add_flag;
+		end
     end
 
 endmodule

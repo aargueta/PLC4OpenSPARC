@@ -10,13 +10,15 @@ module plc_wrapper (
     input  wire                     add_to_list,
     /* SIGNALS WE ARE MUXING */
     // inputs
-    input  wire [ADDR_WIDTH-1:0]    addr_in,
-    input  wire [WAY_WIDTH-1:0]     way_in,
+    input  wire [ADDR_WIDTH-1:0]    read_addr_in,
+    input  wire [WAY_WIDTH-1:0]     read_way_in,
+    input  wire [ADDR_WIDTH-1:0]    write_addr_in,
+    input  wire [WAY_WIDTH-1:0]     write_way_in,
     input  wire                     read_enable_in,
     input  wire                     alt_mx_sel_in,
     // outputs
-    output reg  [ADDR_WIDTH-1:0]    addr_out,
-    output reg  [WAY_WIDTH-1:0]     way_out,
+    output reg  [ADDR_WIDTH-1:0]    read_addr_out,
+    output reg  [WAY_WIDTH-1:0]     read_way_out,
     output reg                      read_enable_out,
     output reg                      alt_mx_sel_out,
     /* SIGNALS WE ARE OBSERVING */
@@ -26,7 +28,7 @@ module plc_wrapper (
                                     // read_enable above, also
     // outputs from dcache
     input  wire [DATA_SIZE-1:0]     data,
-    // PLC errors
+    // plc
     output wire                     plc_error_found
 );
 
@@ -34,9 +36,10 @@ module plc_wrapper (
     parameter WAY_WIDTH  = 4;
     parameter DATA_SIZE = 64;
 
-    reg  check_enable;
-    reg  access_cache;
-    reg  pause;
+// Misc
+    reg                     check_enable;
+    reg                     access_cache;
+    reg                     pause;
 
 // Fetching
     wire                    last_flag;
@@ -46,9 +49,9 @@ module plc_wrapper (
     wire                    plc_check_flag;
 
 // To Cache
-    wire read_enable_chk;
-    wire [ADDR_WIDTH-1:0] addr_out_chk;
-    wire [WAY_WIDTH-1:0] way_out_chk;
+    wire                    read_enable_chk;
+    wire [ADDR_WIDTH-1:0]   addr_out_chk;
+    wire [WAY_WIDTH-1:0]    way_out_chk;
 
 // Adding
     wire [2*ADDR_WIDTH-1:0] add_addr_tuple;
@@ -66,18 +69,20 @@ module plc_wrapper (
 
     always @(*) begin
         read_enable_out =  check_enable && !access_cache ? read_enable_chk : read_enable_in;
-        addr_out        =  check_enable && !access_cache ? addr_out_chk : addr_in;
-        way_out         =  check_enable && !access_cache ? way_out_chk : way_in;
+        read_addr_out   =  check_enable && !access_cache ? addr_out_chk : read_addr_in;
+        read_way_out    =  check_enable && !access_cache ? way_out_chk : read_way_in;
         alt_mx_sel_out  =  check_enable && !access_cache ? 1'b0 : alt_mx_sel_in;
     end
 
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             check_enable <= 1'b0;
         end else if (plc_check_flag) begin
             check_enable <= 1'b1;
         end else if (last_flag & fetch_flag) begin
             check_enable <= 1'b0;
+        end else begin
+            check_enable <= check_enable;
         end
     end
 
@@ -93,8 +98,8 @@ module plc_wrapper (
         .add_addr_tuple     (add_addr_tuple),   // input  wire [2*ADDR_WIDTH-1:0]  add_addr_tuple
         .add_way_tuple      (add_way_tuple),    // input  wire [2*WAY_WIDTH-1:0]   add_way_tuple
         .add_flag           (add_flag),         // input  wire                     add_flag
-        .store_addr         (addr_in),          // input  wire [ADDR_WIDTH-1:0]    store_addr
-        .store_addr_w       (way_in),           // input  wire [ADDR_WIDTH-1:0]    store_addr
+        .store_addr         (write_addr_in),    // input  wire [ADDR_WIDTH-1:0]    store_addr
+        .store_addr_w       (write_way_in),     // input  wire [ADDR_WIDTH-1:0]    store_addr
         .store_flag         (write_enable),     // input  wire                     store_flag
         .fetch_flag         (fetch_flag),       // input  wire                     fetch_flag
         .add_done           (),                 // output reg                      add_done
@@ -138,8 +143,8 @@ module plc_wrapper (
         .rst                (rst),              // input   wire                        rst
         .indicator          (add_to_list),      // input   wire                        indicator
         .write_en           (write_enable),     // input   wire                        write_en
-        .addr               (addr_in),          // input   wire    [ADDR_WIDTH-1:0]    addr
-        .way                (way_in),           // input   wire    [WAY_WIDTH-1:0]     way
+        .addr               (write_addr_in),          // input   wire    [ADDR_WIDTH-1:0]    addr
+        .way                (write_way_in),           // input   wire    [WAY_WIDTH-1:0]     way
         .add_addr_tuple     (add_addr_tuple),   // output  reg     [2*ADDR_WIDTH-1:0]  add_addr_tuple
         .add_way_tuple      (add_way_tuple),    // output  reg     [2*WAY_WDITH-1:0]   add_way_tuple
         .add_flag           (add_flag)          // output  reg                         add_flag
