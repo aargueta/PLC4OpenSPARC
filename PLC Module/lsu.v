@@ -1,31 +1,31 @@
 // ========== Copyright Header Begin ==========================================
-// 
+//
 // OpenSPARC T1 Processor File: lsu.v
 // Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
 // DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
-// 
+//
 // The above named program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public
 // License version 2 as published by the Free Software Foundation.
-// 
-// The above named program is distributed in the hope that it will be 
+//
+// The above named program is distributed in the hope that it will be
 // useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public
 // License along with this work; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-// 
+//
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////////////////////
 /*
-//  Description:  Load/Store Unit for Sparc Core  
+//  Description:  Load/Store Unit for Sparc Core
 */
 ////////////////////////////////////////////////////////////////////////
 // Global header file includes
 ////////////////////////////////////////////////////////////////////////
-`include  "sys.h" // system level definition file which contains the 
+`include  "sys.h" // system level definition file which contains the
           // time scale definition
 
 `include        "iop.h"
@@ -34,98 +34,98 @@
 // Local header file includes / local defines
 ////////////////////////////////////////////////////////////////////////
 
-module lsu_blah ( /*AUTOARG*/
+module lsu ( /*AUTOARG*/
    // Outputs
-   spc_pcx_req_pq, spc_pcx_data_pa, spc_pcx_atom_pq, 
-   spc_efc_dfuse_data, mbist_dcache_data_in, lsu_tlu_wsr_inst_e, 
-   lsu_tlu_ttype_vld_m2, lsu_tlu_ttype_m2, lsu_tlu_tlb_st_inst_m, 
-   lsu_tlu_tlb_ldst_va_m, lsu_tlu_tlb_ld_inst_m, 
-   lsu_tlu_tlb_dmp_va_m, lsu_tlu_tlb_asi_state_m, 
-   lsu_tlu_tlb_access_tid_m, lsu_tlu_thrid_d, lsu_tlu_stb_full_w2, 
-   lsu_tlu_rsr_data_e, lsu_tlu_rs3_data_g, lsu_tlu_pcxpkt_ack, 
-   lsu_tlu_pctxt_m, lsu_tlu_misalign_addr_ldst_atm_m, 
-   lsu_tlu_ldst_va_m, lsu_tlu_l2_dmiss, lsu_tlu_intpkt, 
-   lsu_tlu_early_flush_w, lsu_tlu_early_flush2_w, lsu_tlu_dtlb_done, 
-   lsu_tlu_dside_ctxt_m, lsu_tlu_dmmu_miss_g, 
-   lsu_tlu_defr_trp_taken_g, lsu_tlu_dcache_miss_w2, 
-   lsu_tlu_daccess_excptn_g, lsu_tlu_cpx_vld, lsu_tlu_cpx_req, 
-   lsu_tlu_async_ttype_w2, lsu_tlu_async_ttype_vld_w2, 
-   lsu_tlu_async_tid_w2, lsu_t3_pctxt_state, lsu_t2_pctxt_state, 
-   lsu_t1_pctxt_state, lsu_t0_pctxt_state, lsu_spu_strm_ack_cmplt, 
-   lsu_spu_stb_empty, lsu_spu_ldst_ack, lsu_spu_early_flush_g, 
-   lsu_spu_asi_state_e, lsu_pid_state3, lsu_pid_state2, 
-   lsu_pid_state1, lsu_pid_state0, lsu_mmu_rs3_data_g, 
-   lsu_mmu_flush_pipe_w, lsu_mmu_defr_trp_taken_g, lsu_mamem_mrgn, 
-   lsu_itlb_mrgn, lsu_ifu_tlb_tag_ue, lsu_ifu_tlb_data_ue, 
-   lsu_ifu_tlb_data_su, lsu_ifu_stxa_data, lsu_ifu_stbcnt3, 
-   lsu_ifu_stbcnt2, lsu_ifu_stbcnt1, lsu_ifu_stbcnt0, 
-   lsu_ifu_stallreq, lsu_ifu_pcxpkt_ack_d, lsu_ifu_ldsta_internal_e, 
-   lsu_ifu_ldst_miss_w, lsu_ifu_ldst_cmplt, lsu_ifu_ld_pcxpkt_vld, 
-   lsu_ifu_ld_pcxpkt_tid, lsu_ifu_ld_icache_index, 
-   lsu_ifu_l2_unc_error, lsu_ifu_l2_corr_error, lsu_ifu_itlb_en, 
-   lsu_ifu_io_error, lsu_ifu_icache_en, lsu_ifu_flush_pipe_w, 
-   lsu_ifu_error_tid, lsu_ifu_direct_map_l1, 
-   lsu_ifu_dcache_tag_perror, lsu_ifu_dcache_data_perror, 
-   lsu_ifu_dc_parity_error_w2, lsu_ifu_cpxpkt_vld_i1, 
-   lsu_ifu_cpxpkt_i1, lsu_ifu_asi_vld, lsu_ifu_asi_thrid, 
-   lsu_ifu_asi_state, lsu_ifu_asi_load, lsu_ifu_asi_addr, 
-   lsu_ictag_mrgn, lsu_ffu_stb_full3, lsu_ffu_stb_full2, 
-   lsu_ffu_stb_full1, lsu_ffu_stb_full0, lsu_ffu_st_dtlb_perr_g, 
-   lsu_ffu_ld_vld, lsu_ffu_ld_data, lsu_ffu_flush_pipe_w, 
-   lsu_ffu_blk_asi_e, lsu_ffu_ack, lsu_exu_thr_m, 
-   lsu_exu_st_dtlb_perr_g, lsu_exu_rd_m, lsu_exu_ldst_miss_w2, 
-   lsu_exu_flush_pipe_w, lsu_exu_dfill_vld_w2, lsu_exu_dfill_data_w2, 
-   lsu_dsfsr_din_g, lsu_dmmu_sfsr_trp_wr, lsu_asi_reg3, lsu_asi_reg2, 
-   lsu_asi_reg1, lsu_asi_reg0, ifu_tlu_flush_fd_w, 
-   ifu_tlu_flush_fd3_w, ifu_tlu_flush_fd2_w, bist_ctl_reg_wr_en, 
-   bist_ctl_reg_in, lsu_asi_state, lsu_ifu_err_addr, lsu_sscan_data, 
-   ifu_tlu_inst_vld_m_bf1, lsu_ffu_bld_cnt_w, so0, so1, short_so0, 
-   short_so1, lsu_tlu_nucleus_ctxt_m, lsu_tlu_tte_pg_sz_g, 
-   lsu_tlu_squash_va_oor_m, lsu_tlu_wtchpt_trp_g, 
-   lsu_tlu_daccess_prot_g, lsu_tlu_priv_action_g, 
+   spc_pcx_req_pq, spc_pcx_data_pa, spc_pcx_atom_pq,
+   spc_efc_dfuse_data, mbist_dcache_data_in, lsu_tlu_wsr_inst_e,
+   lsu_tlu_ttype_vld_m2, lsu_tlu_ttype_m2, lsu_tlu_tlb_st_inst_m,
+   lsu_tlu_tlb_ldst_va_m, lsu_tlu_tlb_ld_inst_m,
+   lsu_tlu_tlb_dmp_va_m, lsu_tlu_tlb_asi_state_m,
+   lsu_tlu_tlb_access_tid_m, lsu_tlu_thrid_d, lsu_tlu_stb_full_w2,
+   lsu_tlu_rsr_data_e, lsu_tlu_rs3_data_g, lsu_tlu_pcxpkt_ack,
+   lsu_tlu_pctxt_m, lsu_tlu_misalign_addr_ldst_atm_m,
+   lsu_tlu_ldst_va_m, lsu_tlu_l2_dmiss, lsu_tlu_intpkt,
+   lsu_tlu_early_flush_w, lsu_tlu_early_flush2_w, lsu_tlu_dtlb_done,
+   lsu_tlu_dside_ctxt_m, lsu_tlu_dmmu_miss_g,
+   lsu_tlu_defr_trp_taken_g, lsu_tlu_dcache_miss_w2,
+   lsu_tlu_daccess_excptn_g, lsu_tlu_cpx_vld, lsu_tlu_cpx_req,
+   lsu_tlu_async_ttype_w2, lsu_tlu_async_ttype_vld_w2,
+   lsu_tlu_async_tid_w2, lsu_t3_pctxt_state, lsu_t2_pctxt_state,
+   lsu_t1_pctxt_state, lsu_t0_pctxt_state, lsu_spu_strm_ack_cmplt,
+   lsu_spu_stb_empty, lsu_spu_ldst_ack, lsu_spu_early_flush_g,
+   lsu_spu_asi_state_e, lsu_pid_state3, lsu_pid_state2,
+   lsu_pid_state1, lsu_pid_state0, lsu_mmu_rs3_data_g,
+   lsu_mmu_flush_pipe_w, lsu_mmu_defr_trp_taken_g, lsu_mamem_mrgn,
+   lsu_itlb_mrgn, lsu_ifu_tlb_tag_ue, lsu_ifu_tlb_data_ue,
+   lsu_ifu_tlb_data_su, lsu_ifu_stxa_data, lsu_ifu_stbcnt3,
+   lsu_ifu_stbcnt2, lsu_ifu_stbcnt1, lsu_ifu_stbcnt0,
+   lsu_ifu_stallreq, lsu_ifu_pcxpkt_ack_d, lsu_ifu_ldsta_internal_e,
+   lsu_ifu_ldst_miss_w, lsu_ifu_ldst_cmplt, lsu_ifu_ld_pcxpkt_vld,
+   lsu_ifu_ld_pcxpkt_tid, lsu_ifu_ld_icache_index,
+   lsu_ifu_l2_unc_error, lsu_ifu_l2_corr_error, lsu_ifu_itlb_en,
+   lsu_ifu_io_error, lsu_ifu_icache_en, lsu_ifu_flush_pipe_w,
+   lsu_ifu_error_tid, lsu_ifu_direct_map_l1,
+   lsu_ifu_dcache_tag_perror, lsu_ifu_dcache_data_perror,
+   lsu_ifu_dc_parity_error_w2, lsu_ifu_cpxpkt_vld_i1,
+   lsu_ifu_cpxpkt_i1, lsu_ifu_asi_vld, lsu_ifu_asi_thrid,
+   lsu_ifu_asi_state, lsu_ifu_asi_load, lsu_ifu_asi_addr,
+   lsu_ictag_mrgn, lsu_ffu_stb_full3, lsu_ffu_stb_full2,
+   lsu_ffu_stb_full1, lsu_ffu_stb_full0, lsu_ffu_st_dtlb_perr_g,
+   lsu_ffu_ld_vld, lsu_ffu_ld_data, lsu_ffu_flush_pipe_w,
+   lsu_ffu_blk_asi_e, lsu_ffu_ack, lsu_exu_thr_m,
+   lsu_exu_st_dtlb_perr_g, lsu_exu_rd_m, lsu_exu_ldst_miss_w2,
+   lsu_exu_flush_pipe_w, lsu_exu_dfill_vld_w2, lsu_exu_dfill_data_w2,
+   lsu_dsfsr_din_g, lsu_dmmu_sfsr_trp_wr, lsu_asi_reg3, lsu_asi_reg2,
+   lsu_asi_reg1, lsu_asi_reg0, ifu_tlu_flush_fd_w,
+   ifu_tlu_flush_fd3_w, ifu_tlu_flush_fd2_w, bist_ctl_reg_wr_en,
+   bist_ctl_reg_in, lsu_asi_state, lsu_ifu_err_addr, lsu_sscan_data,
+   ifu_tlu_inst_vld_m_bf1, lsu_ffu_bld_cnt_w, so0, so1, short_so0,
+   short_so1, lsu_tlu_nucleus_ctxt_m, lsu_tlu_tte_pg_sz_g,
+   lsu_tlu_squash_va_oor_m, lsu_tlu_wtchpt_trp_g,
+   lsu_tlu_daccess_prot_g, lsu_tlu_priv_action_g,
    // Inputs
-   tlu_lsu_tl_zero, tlu_lsu_tid_m, tlu_lsu_stxa_ack_tid, 
-   tlu_lsu_stxa_ack, tlu_lsu_redmode_rst_d1, tlu_lsu_redmode, 
-   tlu_lsu_pstate_priv, tlu_lsu_pstate_cle, tlu_lsu_pstate_am, 
-   tlu_lsu_priv_trap_m, tlu_lsu_pcxpkt, tlu_lsu_ldxa_tid_w2, 
-   tlu_lsu_ldxa_async_data_vld, tlu_lsu_int_ldxa_vld_w2, 
-   tlu_lsu_int_ldxa_data_w2, tlu_lsu_int_ld_ill_va_w2, 
-   tlu_lsu_hpv_priv, tlu_lsu_hpstate_en, tlu_lsu_asi_update_m, 
-   tlu_lsu_asi_m, tlu_idtlb_dmp_thrid_g, tlu_idtlb_dmp_key_g, 
-   tlu_exu_early_flush_pipe_w, tlu_early_flush_pipe_w, 
-   tlu_early_flush_pipe2_w, tlu_dtlb_tte_tag_w2, 
-   tlu_dtlb_tte_data_w2, tlu_dtlb_tag_rd_g, tlu_dtlb_rw_index_vld_g, 
-   tlu_dtlb_rw_index_g, tlu_dtlb_invalidate_all_g, 
-   tlu_dtlb_dmp_vld_g, tlu_dtlb_dmp_sctxt_g, tlu_dtlb_dmp_pctxt_g, 
-   tlu_dtlb_dmp_nctxt_g, tlu_dtlb_dmp_all_g, tlu_dtlb_dmp_actxt_g, 
-   tlu_dtlb_data_rd_g, tlu_dsfsr_flt_vld, testmode_l, 
-   spu_lsu_unc_error_w2, spu_lsu_stxa_ack_tid, spu_lsu_stxa_ack, 
-   spu_lsu_ldxa_tid_w2, spu_lsu_ldxa_illgl_va_w2, 
-   spu_lsu_ldxa_data_w2, spu_lsu_ldxa_data_vld_w2, spu_lsu_int_w2, 
-   sehold, se, pcx_spc_grant_px, mux_drive_disable, 
-   mem_write_disable, mbist_write_data, mbist_dcache_write, 
-   mbist_dcache_word, mbist_dcache_way, mbist_dcache_read, 
-   mbist_dcache_index, ifu_tlu_wsr_inst_d, ifu_tlu_thrid_e, 
-   ifu_tlu_sraddr_d, ifu_tlu_mb_inst_e, ifu_tlu_inst_vld_m, 
-   ifu_tlu_flush_m, ifu_tlu_flsh_inst_e, ifu_lsu_thrid_s, 
-   ifu_lsu_swap_e, ifu_lsu_st_inst_e, ifu_lsu_sign_ext_e, 
-   ifu_lsu_rd_e, ifu_lsu_pref_inst_e, ifu_lsu_pcxreq_d, 
-   ifu_lsu_pcxpkt_e, ifu_lsu_nceen, ifu_lsu_memref_d, 
-   ifu_lsu_ldxa_tid_w2, ifu_lsu_ldxa_illgl_va_w2, 
-   ifu_lsu_ldxa_data_w2, ifu_lsu_ldxa_data_vld_w2, ifu_lsu_ldstub_e, 
-   ifu_lsu_ldst_size_e, ifu_lsu_ldst_fp_e, ifu_lsu_ldst_dbl_e, 
-   ifu_lsu_ld_inst_e, ifu_lsu_inv_clear, ifu_lsu_imm_asi_vld_d, 
-   ifu_lsu_imm_asi_d, ifu_lsu_ibuf_busy, ifu_lsu_fwd_wr_ack, 
-   ifu_lsu_fwd_data_vld, ifu_lsu_destid_s, ifu_lsu_casa_e, 
-   ifu_lsu_asi_rd_unc, ifu_lsu_asi_ack, ifu_lsu_alt_space_e, 
-   ifu_lsu_alt_space_d, grst_l, gdbginit_l, ffu_lsu_kill_fst_w, 
-   ffu_lsu_fpop_rq_vld, ffu_lsu_blk_st_va_e, ffu_lsu_blk_st_e, 
-   exu_tlu_va_oor_m, exu_tlu_misalign_addr_jmpl_rtn_m, 
-   exu_lsu_rs3_data_e, exu_lsu_rs2_data_e, efc_spc_fuse_clk2, 
-   efc_spc_fuse_clk1, efc_spc_dfuse_dshift, efc_spc_dfuse_data, 
-   efc_spc_dfuse_ashift, ctu_sscan_tid, const_cpuid, clk, 
-   bist_ctl_reg_out, arst_l, cpx_spc_data_cx, spu_lsu_ldst_pckt, 
-   exu_lsu_ldst_va_e, exu_lsu_early_va_e, ffu_lsu_data, si0, si1, 
+   tlu_lsu_tl_zero, tlu_lsu_tid_m, tlu_lsu_stxa_ack_tid,
+   tlu_lsu_stxa_ack, tlu_lsu_redmode_rst_d1, tlu_lsu_redmode,
+   tlu_lsu_pstate_priv, tlu_lsu_pstate_cle, tlu_lsu_pstate_am,
+   tlu_lsu_priv_trap_m, tlu_lsu_pcxpkt, tlu_lsu_ldxa_tid_w2,
+   tlu_lsu_ldxa_async_data_vld, tlu_lsu_int_ldxa_vld_w2,
+   tlu_lsu_int_ldxa_data_w2, tlu_lsu_int_ld_ill_va_w2,
+   tlu_lsu_hpv_priv, tlu_lsu_hpstate_en, tlu_lsu_asi_update_m,
+   tlu_lsu_asi_m, tlu_idtlb_dmp_thrid_g, tlu_idtlb_dmp_key_g,
+   tlu_exu_early_flush_pipe_w, tlu_early_flush_pipe_w,
+   tlu_early_flush_pipe2_w, tlu_dtlb_tte_tag_w2,
+   tlu_dtlb_tte_data_w2, tlu_dtlb_tag_rd_g, tlu_dtlb_rw_index_vld_g,
+   tlu_dtlb_rw_index_g, tlu_dtlb_invalidate_all_g,
+   tlu_dtlb_dmp_vld_g, tlu_dtlb_dmp_sctxt_g, tlu_dtlb_dmp_pctxt_g,
+   tlu_dtlb_dmp_nctxt_g, tlu_dtlb_dmp_all_g, tlu_dtlb_dmp_actxt_g,
+   tlu_dtlb_data_rd_g, tlu_dsfsr_flt_vld, testmode_l,
+   spu_lsu_unc_error_w2, spu_lsu_stxa_ack_tid, spu_lsu_stxa_ack,
+   spu_lsu_ldxa_tid_w2, spu_lsu_ldxa_illgl_va_w2,
+   spu_lsu_ldxa_data_w2, spu_lsu_ldxa_data_vld_w2, spu_lsu_int_w2,
+   sehold, se, pcx_spc_grant_px, mux_drive_disable,
+   mem_write_disable, mbist_write_data, mbist_dcache_write,
+   mbist_dcache_word, mbist_dcache_way, mbist_dcache_read,
+   mbist_dcache_index, ifu_tlu_wsr_inst_d, ifu_tlu_thrid_e,
+   ifu_tlu_sraddr_d, ifu_tlu_mb_inst_e, ifu_tlu_inst_vld_m,
+   ifu_tlu_flush_m, ifu_tlu_flsh_inst_e, ifu_lsu_thrid_s,
+   ifu_lsu_swap_e, ifu_lsu_st_inst_e, ifu_lsu_sign_ext_e,
+   ifu_lsu_rd_e, ifu_lsu_pref_inst_e, ifu_lsu_pcxreq_d,
+   ifu_lsu_pcxpkt_e, ifu_lsu_nceen, ifu_lsu_memref_d,
+   ifu_lsu_ldxa_tid_w2, ifu_lsu_ldxa_illgl_va_w2,
+   ifu_lsu_ldxa_data_w2, ifu_lsu_ldxa_data_vld_w2, ifu_lsu_ldstub_e,
+   ifu_lsu_ldst_size_e, ifu_lsu_ldst_fp_e, ifu_lsu_ldst_dbl_e,
+   ifu_lsu_ld_inst_e, ifu_lsu_inv_clear, ifu_lsu_imm_asi_vld_d,
+   ifu_lsu_imm_asi_d, ifu_lsu_ibuf_busy, ifu_lsu_fwd_wr_ack,
+   ifu_lsu_fwd_data_vld, ifu_lsu_destid_s, ifu_lsu_casa_e,
+   ifu_lsu_asi_rd_unc, ifu_lsu_asi_ack, ifu_lsu_alt_space_e,
+   ifu_lsu_alt_space_d, grst_l, gdbginit_l, ffu_lsu_kill_fst_w,
+   ffu_lsu_fpop_rq_vld, ffu_lsu_blk_st_va_e, ffu_lsu_blk_st_e,
+   exu_tlu_va_oor_m, exu_tlu_misalign_addr_jmpl_rtn_m,
+   exu_lsu_rs3_data_e, exu_lsu_rs2_data_e, efc_spc_fuse_clk2,
+   efc_spc_fuse_clk1, efc_spc_dfuse_dshift, efc_spc_dfuse_data,
+   efc_spc_dfuse_ashift, ctu_sscan_tid, const_cpuid, clk,
+   bist_ctl_reg_out, arst_l, cpx_spc_data_cx, spu_lsu_ldst_pckt,
+   exu_lsu_ldst_va_e, exu_lsu_early_va_e, ffu_lsu_data, si0, si1,
    short_si1, short_si0, exu_tlu_wsr_data_m
    );
 
@@ -372,7 +372,7 @@ output [4:0]            spc_pcx_req_pq;         // From qctl1 of lsu_qctl1.v
 // End of automatics
 /*AUTOWIRE*/
 // Beginning of automatic wires (for undeclared instantiated-module outputs)
-   
+
 wire                    as_if_user_asi_m;       // From dctl of lsu_dctl.v
 wire [7:0]              asi_d;                  // From dctldp of lsu_dctldp.v
 wire                    asi_internal_m;         // From dctl of lsu_dctl.v
@@ -1001,34 +1001,34 @@ wire                    wr_only_ltlb_asi_e;     // From dctl of lsu_dctl.v
 
 
 //split bus. emacs cannot handle
-input [`CPX_WIDTH-1:0]  cpx_spc_data_cx;   // cpx to processor pkt  
-input [`PCX_WIDTH-1:0]  spu_lsu_ldst_pckt;   
-input [47:0]            exu_lsu_ldst_va_e;  // VA for mem-ref (src-execute) 
+input [`CPX_WIDTH-1:0]  cpx_spc_data_cx;   // cpx to processor pkt
+input [`PCX_WIDTH-1:0]  spu_lsu_ldst_pckt;
+input [47:0]            exu_lsu_ldst_va_e;  // VA for mem-ref (src-execute)
 input [10:3]            exu_lsu_early_va_e;  // early partial VA for lookup
-input	[80:0]		ffu_lsu_data ;  
+input	[80:0]		ffu_lsu_data ;
 
-  
+
 output [7:0]            lsu_asi_state;
 output [47:4]           lsu_ifu_err_addr;
 output [15:0]		lsu_sscan_data ;	// fragmented across dbbs
 output                  ifu_tlu_inst_vld_m_bf1;
 output [2:0]		lsu_ffu_bld_cnt_w ;
-   
+
 wire [47:0]  lsu_local_ldxa_data_g;
-wire [43:0]  lsu_iobrdge_rd_data;	
+wire [43:0]  lsu_iobrdge_rd_data;
 wire [79:0]  stb_rdata_ramd;
 wire [75:64]  stb_wdata_ramd_b75_b64;
 wire [63:0]   lsu_stb_st_data_g;
-   
+
 wire [151:0] dfq_rdata;
 wire [151:0] dfq_wdata;
 wire         lsu_cpx_stack_icfill_vld;
 wire [29:0]  dtag_wdata_m;
    wire      lsu_cpx_stack_dcfill_vld_b130;
    wire [7:0] stb_ldst_byte_msk_min;
-   
+
 // scan chain
-input                   si0,si1,short_si1,short_si0; 
+input                   si0,si1,short_si1,short_si0;
 output                  so0, so1,short_so0,short_so1;
    wire     short_scan1_1;
    wire     short_scan1_2;
@@ -1053,20 +1053,25 @@ output                  so0, so1,short_so0,short_so1;
    wire     scan1_2;
    wire     scan1_3;
    wire     scan1_4;
-   
+
    wire     scan0_1;
    wire     scan0_2;
-   
+
+
+   wire [7:0]   plc_inter_addr;
+   wire [3:0]   plc_inter_way;
+   wire         plc_read_en;
+
 /*defined input*/
 
-input [7:0]            exu_tlu_wsr_data_m; 
+input [7:0]            exu_tlu_wsr_data_m;
 
 /*defined output*/
 
 output                  lsu_tlu_nucleus_ctxt_m ;// access is nucleus context //??no driver
 output  [2:0]           lsu_tlu_tte_pg_sz_g ;   // page-size of tte //??no driver
 
-     
+
 // dsfsr support moved from tlu_tcl to lsu_excpctl ; becomes wire
 // !! first check if needed by iside in tlu_tcl, or mmu_ctl !!!
 //output			lsu_tlu_nonalt_ldst_m;	// From dctl of lsu_dctl.v
@@ -1076,7 +1081,7 @@ output			lsu_tlu_wtchpt_trp_g;	// From excpctl of lsu_excpctl.v
 output			lsu_tlu_daccess_prot_g;	// From excpctl of lsu_excpctl.v
 output			lsu_tlu_priv_action_g;	// From excpctl of lsu_excpctl.v
 // To accommodate 1Thread design
-wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design   
+wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
    wire [7:0]		lsu_asi_reg0_t;
    wire [7:0]		lsu_asi_reg1_t;
    wire [7:0]		lsu_asi_reg2_t;
@@ -1089,7 +1094,10 @@ wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
    wire [2:0] 		lsu_pid_state1_t;
    wire [2:0] 		lsu_pid_state2_t;
    wire [2:0] 		lsu_pid_state3_t;
-   
+
+   parameter [47:0]  ADDRESS_SIGNAL = 48'hfff00f00000;//SOME_ADDRESS; //!
+   reg               plc_add_list_sig;
+
 `ifdef FPGA_SYN_1THREAD
    assign 		lsu_tlu_stb_full_w2[3:0] = {3'b000, lsu_tlu_stb_full_w2_t[0]};
    assign 		lsu_asi_reg0[7:0] = lsu_asi_reg0_t[7:0];
@@ -1104,7 +1112,7 @@ wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
    assign 		lsu_pid_state1[2:0] = 2'b00;
    assign 		lsu_pid_state2[2:0] = 2'b00;
    assign 		lsu_pid_state3[2:0] = 2'b00;
-   
+
 `else
    assign 		lsu_tlu_stb_full_w2[3:0] = lsu_tlu_stb_full_w2_t[3:0];
    assign 		lsu_asi_reg0[7:0] = lsu_asi_reg0_t[7:0];
@@ -1121,8 +1129,14 @@ wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
    assign 		lsu_pid_state3[2:0] = lsu_pid_state3_t[2:0];
 
 `endif
-        
-   
+
+ always @(*) begin
+    if (exu_lsu_ldst_va_e == ADDRESS_SIGNAL) begin
+        plc_add_list_sig = 1'b1;
+    end else begin
+        plc_add_list_sig = 1'b0;
+    end
+ end
 /* lsu_qctl1 AUTO_TEMPLATE (
                 .grst_l                 (gdbginit_l),
                 .rst_tri_en             (mux_drive_disable),
@@ -1130,23 +1144,23 @@ wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
                 .lsu_ldst_va_m          (lsu_ldst_va_m_buf[7:6]),
                 .ifu_lsu_pcxpkt_e_b50   (ifu_lsu_pcxpkt_e[50]),
                 .rclk                   (clk),
-                .lsu_sscan_data		(lsu_sscan_data[12:0]),     
-                .ld_inst_vld_e          (ifu_lsu_ld_inst_e), 
-                .lsu_ld_miss_g          (lsu_ld_miss_wb),        
-                .spu_lsu_ldst_pckt_vld  (spu_lsu_ldst_pckt[`PCX_VLD]), 
+                .lsu_sscan_data		(lsu_sscan_data[12:0]),
+                .ld_inst_vld_e          (ifu_lsu_ld_inst_e),
+                .lsu_ld_miss_g          (lsu_ld_miss_wb),
+                .spu_lsu_ldst_pckt_vld  (spu_lsu_ldst_pckt[`PCX_VLD]),
                 .lsu_stb_empty        	(lsu_stb_empty_buf[3:0]),
-                .tlb_pgnum_g            (tlb_pgnum_buf[39:37]),      
-                .tlu_lsu_pcxpkt_l2baddr (tlu_lsu_pcxpkt[11:10]), 
-                .tlu_lsu_pcxpkt_tid     (tlu_lsu_pcxpkt[19:18]), 
+                .tlb_pgnum_g            (tlb_pgnum_buf[39:37]),
+                .tlu_lsu_pcxpkt_l2baddr (tlu_lsu_pcxpkt[11:10]),
+                .tlu_lsu_pcxpkt_tid     (tlu_lsu_pcxpkt[19:18]),
                 .tlu_lsu_pcxpkt_vld     (tlu_lsu_pcxpkt[25]),
-                .ld_thrd_byp_sel_e      (lsu_ld_thrd_byp_sel_e[2:0]));    
+                .ld_thrd_byp_sel_e      (lsu_ld_thrd_byp_sel_e[2:0]));
 */
 
 
 `ifdef FPGA_SYN_1THREAD
-   
+
 lsu_qctl1 qctl1  (
-                  .so                   (short_scan1_1),                  
+                  .so                   (short_scan1_1),
                   .si                   (short_si1),
                   /*AUTOINST*/
                   // Outputs
@@ -1292,7 +1306,7 @@ lsu_qctl1 qctl1  (
 `else // !`ifdef FPGA_SYN_1THREAD
 
    lsu_qctl1 qctl1  (
-                  .so                   (short_scan1_1),                  
+                  .so                   (short_scan1_1),
                   .si                   (short_si1),
                   /*AUTOINST*/
                   // Outputs
@@ -1436,7 +1450,7 @@ lsu_qctl1 qctl1  (
                   .tlu_early_flush_pipe2_w(tlu_early_flush_pipe2_w),
                   .lsu_ttype_vld_m2     (lsu_ttype_vld_m2_bf1));  // Templated
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
+
 
 /* lsu_qctl2 AUTO_TEMPLATE (
                 .rst_tri_en             (mux_drive_disable),
@@ -1447,22 +1461,22 @@ lsu_qctl1 qctl1  (
                 .lsu_dfq_rdata_invwy_vld (dfq_rdata[`CPX_WYVLD]),
                 .lsu_dfq_rdata_cpuid     (dfq_rdata[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                 .lsu_dfq_rdata_stack_iinv_vld(dfq_rdata[128]),
-                .lsu_dfq_rdata_st_ack_type(dfq_rdata[`DFQ_WIDTH-4]), 
+                .lsu_dfq_rdata_st_ack_type(dfq_rdata[`DFQ_WIDTH-4]),
                 .lsu_dfq_rdata_stack_dcfill_vld(dfq_rdata[130]),
                 .lsu_ifill_pkt_vld      (lsu_ifu_cpxpkt_vld_i1),
-                .lsu_dfq_vld_entry_w 	(lsu_sscan_data[15]),     
-                .ifu_pcx_pkt_b10t5      (ifu_lsu_pcxpkt_e[10:5]), 
-                .ifu_pcx_pkt_b41t40     (ifu_lsu_pcxpkt_e[41:40]), 
-                .ifu_pcx_pkt_b51        (ifu_lsu_pcxpkt_e[51]),  
-                .ld_inst_vld_e          (ifu_lsu_ld_inst_e),     
+                .lsu_dfq_vld_entry_w 	(lsu_sscan_data[15]),
+                .ifu_pcx_pkt_b10t5      (ifu_lsu_pcxpkt_e[10:5]),
+                .ifu_pcx_pkt_b41t40     (ifu_lsu_pcxpkt_e[41:40]),
+                .ifu_pcx_pkt_b51        (ifu_lsu_pcxpkt_e[51]),
+                .ld_inst_vld_e          (ifu_lsu_ld_inst_e),
                 .lsu_l2fill_fpld_e      (lsu_l2fill_fpld_e),
                 .lsu_dfq_rdata_flush_bit (dfq_rdata[136]),
                 .lsu_dfq_rdata_b17_b0    (dfq_rdata[17:0]),
-                .lsu_ld_miss_g          (lsu_ld_miss_wb));        
+                .lsu_ld_miss_g          (lsu_ld_miss_wb));
 */
 
 `ifdef FPGA_SYN_1THREAD
-   
+
 lsu_qctl2 qctl2  (
                   .so                   (scan1_1),
                   .si                   (si1),
@@ -1863,8 +1877,8 @@ lsu_qctl2 qctl2  (
                   .lsu_dfq_rdata_b103   (dfq_rdata[103]),        // Templated
                   .sehold               (sehold));
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
-/*   cmp_sram_redhdr AUTO_TEMPLATE( 
+
+/*   cmp_sram_redhdr AUTO_TEMPLATE(
                             .fuse_ary_wren(fuse_dcd_wren),
                             .fuse_ary_rid(fuse_dcd_rid[5:0]),
                             .fuse_ary_repair_value(fuse_dcd_repair_value[7:0]),
@@ -1879,7 +1893,7 @@ lsu_qctl2 qctl2  (
                             .scanin   (si0),
                             .rclk     (clk));
  */
-   
+
 cmp_sram_redhdr dcdhdr(
                        .scanout         (scan0_1),
                        /*AUTOINST*/
@@ -1907,14 +1921,32 @@ cmp_sram_redhdr dcdhdr(
                    //.sehold               (),
                    .rclk                 (clk),
                    .dcache_alt_addr_e    (lsu_dcache_fill_addr_e[10:3]),
-                   .dcache_alt_rsel_way_e(lsu_bist_rsel_way_e[3:0]), 
-                   .dcache_rd_addr_e     (exu_lsu_early_va_e[10:3]), 
+                   .dcache_alt_rsel_way_e(lsu_bist_rsel_way_e[3:0]),
+                   .dcache_rd_addr_e     (exu_lsu_early_va_e[10:3]),
                    .dcache_rsel_way_wb   (cache_way_hit[3:0]),
-                   .dcache_wdata_e       (lsu_dcache_fill_data_e[143:0]), 
+                   .dcache_wdata_e       (lsu_dcache_fill_data_e[143:0]),
                    .dcache_wr_rway_e     (lsu_dcache_fill_way_e[3:0]),
                    .dcache_wvld_e        (lsu_dcache_wr_vld_e));
 */
-   
+
+
+//!Added for PLC
+plc_wrapper plc (
+                .clk                    (clk),
+                .rst                    (~grst_l),
+                .add_to_list            (plc_add_list_sig), //need to figure out how to get signal
+                .addr_in                (exu_lsu_early_va_e[10:3]),
+                .way_in                 (lsu_dcache_fill_way_e[3:0]),
+                .addr_out               (plc_inter_addr[7:0]),
+                .way_out                (plc_inter_way[3:0]),
+                .read_enable_in         (dcache_rvld_e),
+                .read_enable_out        (plc_read_en),
+                .write_enable           (lsu_dcache_wr_vld_e),
+                .data                   (dcache_rdata_wb[63:0]),
+                .plc_error_found        ()
+);
+
+
 bw_r_dcd dcache (
                  .so                    (scan1_2),
                  .si                    (scan1_1),
@@ -1930,12 +1962,12 @@ bw_r_dcd dcache (
                  .dcd_fuse_repair_value (dcd_fuse_repair_value[7:0]),
                  .dcd_fuse_repair_en    (dcd_fuse_repair_en[1:0]),
                  // Inputs
-                 .dcache_rd_addr_e      (exu_lsu_early_va_e[10:3]), // Templated
+                 .dcache_rd_addr_e      (plc_inter_addr), // PLC
                  .dcache_alt_addr_e     (lsu_dcache_fill_addr_e[10:3]), // Templated
-                 .dcache_rvld_e         (dcache_rvld_e),
+                 .dcache_rvld_e         (plc_read_en),
                  .dcache_wvld_e         (lsu_dcache_wr_vld_e),   // Templated
                  .dcache_wdata_e        (lsu_dcache_fill_data_e[143:0]), // Templated
-                 .dcache_wr_rway_e      (lsu_dcache_fill_way_e[3:0]), // Templated
+                 .dcache_wr_rway_e      (plc_inter_way), // Templated
                  .dcache_byte_wr_en_e   (dcache_byte_wr_en_e[15:0]),
                  .dcache_alt_rsel_way_e (lsu_bist_rsel_way_e[3:0]), // Templated
                  .dcache_rsel_way_wb    (cache_way_hit[3:0]),    // Templated
@@ -1956,7 +1988,7 @@ bw_r_dcd dcache (
              .rst_tri_en           (mem_write_disable),
              .rclk             (clk),
              .bit_wen          (dva_bit_wr_en_e[15:0]),
-             .din                (dva_din_e), 
+             .din                (dva_din_e),
              .dout               (dva_vld_m[3:0]),
              .rd_adr1            (exu_lsu_early_va_e[10:4]),
              .rd_adr1_sel        (1'b1),
@@ -1966,9 +1998,9 @@ bw_r_dcd dcache (
              //.sehold             (),
              .wr_adr             (dva_wr_adr_e[10:6]),
              .wr_en              (lsu_dtagv_wr_vld_e));
-*/   
+*/
 
-bw_r_rf16x32 dva ( 
+bw_r_rf16x32 dva (
                   .so                   (short_scan0_1),
                   .si                   (short_si0),
                    /*AUTOINST*/
@@ -1992,7 +2024,7 @@ bw_r_rf16x32 dva (
                .rst_tri_en           (mem_write_disable),
                //.sehold                  (),
                .rclk                    (clk),
-               .adj                     (lsu_dctag_mrgn[3:0]),   
+               .adj                     (lsu_dctag_mrgn[3:0]),
                .index0_x                (exu_lsu_early_va_e[10:4]),
                .index1_x                (lsu_dcache_fill_addr_e[10:4]),
                .index_sel_x             (lsu_dtag_index_sel_x_e),
@@ -2001,14 +2033,14 @@ bw_r_rf16x32 dva (
                .rdtag_w1_y              (dtag_rdata_w1_m[32:0]),
                .rdtag_w2_y              (dtag_rdata_w2_m[32:0]),
                .rdtag_w3_y              (dtag_rdata_w3_m[32:0]),
-               .wrreq_x                 (lsu_dtag_wrreq_x_e),    
+               .wrreq_x                 (lsu_dtag_wrreq_x_e),
                //.wrtag_w0_y                 ({3'b000,dtag_wdata_m[29:0]}),
                //.wrtag_w1_y                 ({3'b000,dtag_wdata_m[29:0]}),
                //.wrtag_w2_y                 ({3'b000,dtag_wdata_m[29:0]}),
                //.wrtag_w3_y                 ({3'b000,dtag_wdata_m[29:0]}),
                .dec_wrway_x                (lsu_dcache_fill_way_e[3:0]),
-               .reset_l                 (arst_l));    
-*/ 
+               .reset_l                 (arst_l));
+*/
 
 bw_r_idct dtag (
                 .so                     (short_scan0_2),
@@ -2038,12 +2070,12 @@ bw_r_idct dtag (
                 .adj                    (lsu_dctag_mrgn[3:0]));   // Templated
 /*lsu_tlbdp  AUTO_TEMPLATE (
                .rclk  (clk));
-*/ 
+*/
 
 lsu_tlbdp tlbdp (
                  .so                    (scan1_3),
                  .si                    (scan1_2),
-                 .tlb_rd_tte_data_parity  (tlb_rd_tte_data[42]),   
+                 .tlb_rd_tte_data_parity  (tlb_rd_tte_data[42]),
                  .tlb_rd_tte_tag_parity   (tlb_rd_tte_tag[54]),
                  /*AUTOINST*/
                  // Outputs
@@ -2113,11 +2145,11 @@ lsu_excpctl AUTO_TEMPLATE (
        	        .lsu_sun4r_va_m_l	      (lsu_ldst_va_m[10]),
 	              .lsu_sun4r_pgsz_b2t0_e  ({exu_lsu_rs3_data_e[48],exu_lsu_rs3_data_e[62:61]}),
 	              .lsu_sun4v_pgsz_b2t0_e  (exu_lsu_rs3_data_e[2:0]),
-                .ld_inst_vld_e          (ifu_lsu_ld_inst_e),     
+                .ld_inst_vld_e          (ifu_lsu_ld_inst_e),
                 .st_inst_vld_e          (ifu_lsu_st_inst_e),
-                .rclk                   (clk));     
+                .rclk                   (clk));
 */
-   
+
 lsu_excpctl excpctl (
                      .so                (short_scan0_3),
                      .si                (short_scan0_2),
@@ -2245,7 +2277,7 @@ lsu_excpctl excpctl (
                      .lsu_flsh_inst_m   (lsu_flsh_inst_m),
                      .tte_data_parity_error(tte_data_parity_error),
                      .tte_tag_parity_error(tte_tag_parity_error));
-   
+
 /*lsu_dctldp AUTO_TEMPLATE (
                .thread0_m               (lsu_dctldp_thread0_m),
                .thread1_m               (lsu_dctldp_thread1_m),
@@ -2256,10 +2288,11 @@ lsu_excpctl excpctl (
                .rst_l                   (dctl_rst_l),
       	       .tlu_dtlb_tte_tag_b58t56 (tlu_dtlb_tte_tag_w2[58:56]),
                .lsu_dcfill_addr_e       (lsu_dcache_fill_addr_e_err[10:4]));
-*/    
+*/
 
 `ifdef FPGA_SYN_1THREAD
-   
+
+
 lsu_dctldp dctldp (
                    .so                  (short_scan1_2),
                    .si                  (short_scan1_1),
@@ -2372,7 +2405,7 @@ lsu_dctldp dctldp (
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
                    .lsu_asi_sel_fmx1    (lsu_asi_sel_fmx1[2:0]),
                    .lsu_asi_sel_fmx2    (lsu_asi_sel_fmx2[2:0]),
-                   .exu_lsu_ldst_va_e   (exu_lsu_ldst_va_e[47:0]),
+                   .exu_lsu_ldst_va_e   (exu_lsu_ldst_va_e[47:0]), //! snoop this for signal
                    .tlb_access_en0_g    (tlb_access_en0_g),
                    .tlb_access_en1_g    (1'b0),
                    .tlb_access_en2_g    (1'b0),
@@ -2390,7 +2423,7 @@ lsu_dctldp dctldp (
 
 `else // !`ifdef FPGA_SYN_1THREAD
 
-   
+
    lsu_dctldp dctldp (
                    .so                  (short_scan1_2),
                    .si                  (short_scan1_1),
@@ -2519,7 +2552,7 @@ lsu_dctldp dctldp (
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
                    .rst_tri_en          (mux_drive_disable));     // Templated
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
+
 /*
 lsu_dctl AUTO_TEMPLATE (
                .rst_tri_en           (mux_drive_disable),
@@ -2531,20 +2564,20 @@ lsu_dctl AUTO_TEMPLATE (
                .lsu_iobrdge_tap_rq_type_b8    (lsu_iobrdge_tap_rq_type[8:8]),
                .lsu_iobrdge_tap_rq_type_b6_b3 (lsu_iobrdge_tap_rq_type[6:3]),
                .lsu_iobrdge_tap_rq_type_b1_b0 (lsu_iobrdge_tap_rq_type[1:0]),
- 
+
                .lsu_ifu_err_addr_b39    (lsu_ifu_err_addr[39]),
-               .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     
-               .lsu_sscan_data		(lsu_sscan_data[14:13]),     
-               .ldst_sz_e               (ifu_lsu_ldst_size_e[1:0]), 
-               .lsu_l1hit_sign_extend_e (ifu_lsu_sign_ext_e),    
-               .lsu_tlb_invert_endian_g (tlb_rd_tte_data_ie_buf), 
-               .lsu_tte_data_cp_g	(tlb_rd_tte_data[`STLB_DATA_CP]), 
-               .st_inst_vld_e           (ifu_lsu_st_inst_e),     
-               .tlb_demap_actxt         (tlu_dtlb_dmp_actxt_g),  
-               .tlb_demap_nctxt         (tlu_dtlb_dmp_nctxt_g),  
-               .tlb_demap_pctxt         (tlu_dtlb_dmp_pctxt_g),  
-               .tlb_demap_sctxt         (tlu_dtlb_dmp_sctxt_g),  
-               .tlb_demap_thrid         (tlu_idtlb_dmp_thrid_g[1:0]), 
+               .ld_inst_vld_e           (ifu_lsu_ld_inst_e),
+               .lsu_sscan_data		(lsu_sscan_data[14:13]),
+               .ldst_sz_e               (ifu_lsu_ldst_size_e[1:0]),
+               .lsu_l1hit_sign_extend_e (ifu_lsu_sign_ext_e),
+               .lsu_tlb_invert_endian_g (tlb_rd_tte_data_ie_buf),
+               .lsu_tte_data_cp_g	(tlb_rd_tte_data[`STLB_DATA_CP]),
+               .st_inst_vld_e           (ifu_lsu_st_inst_e),
+               .tlb_demap_actxt         (tlu_dtlb_dmp_actxt_g),
+               .tlb_demap_nctxt         (tlu_dtlb_dmp_nctxt_g),
+               .tlb_demap_pctxt         (tlu_dtlb_dmp_pctxt_g),
+               .tlb_demap_sctxt         (tlu_dtlb_dmp_sctxt_g),
+               .tlb_demap_thrid         (tlu_idtlb_dmp_thrid_g[1:0]),
        	       .lsu_dfill_tid_e		      (dfq_tid[1:0]),
 	             .tlb_pgnum		            ({tlb_pgnum_buf[39:10]}),
                .lsu_ldst_va_b12_b11_m   (lsu_ldst_va_m[12:11]),
@@ -2553,7 +2586,7 @@ lsu_dctl AUTO_TEMPLATE (
 */
 
 `ifdef FPGA_SYN_1THREAD
-   
+
 lsu_dctl dctl (
                .so                      (short_scan1_3),
                .si                      (short_scan1_2),
@@ -3010,7 +3043,7 @@ lsu_dctl dctl (
                .mbist_dcache_read       (mbist_dcache_read));
 
 `else // !`ifdef FPGA_SYN_1THREAD
-      
+
 lsu_dctl dctl (
                .so                      (short_scan1_3),
                .si                      (short_scan1_2),
@@ -3466,14 +3499,14 @@ lsu_dctl dctl (
                .mbist_dcache_write      (mbist_dcache_write),
                .mbist_dcache_read       (mbist_dcache_read));
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
+
 /*lsu_dcdp AUTO_TEMPLATE (
            .dcache_alt_mx_sel_e  (dcache_alt_mx_sel_e_bf),
            .rst_tri_en           (mux_drive_disable),
            .rclk                 (clk));
 */
 
-lsu_dcdp dcdp ( 
+lsu_dcdp dcdp (
                .so                      (scan0_2),
                .si                      (scan0_1),
                 /*AUTOINST*/
@@ -3543,46 +3576,46 @@ lsu_dcdp dcdp (
 bw_r_tlb  AUTO_TEMPLATE (
                  .rst_tri_en            (mem_write_disable),
                  .rclk                  (clk),
-                 .adj                   (lsu_dtlb_mrgn[7:0]),   
-                 .cache_set_vld         (dva_vld_m[3:0]),        
-                 .grst_l                (1'b1), // hard reset not to be used 
-                 .rst_soft_l            (lsu_dtlb_invalid_all_l_m), 
-                 .hold              	(sehold),                      
-                 .tlb_addr_mask_l       (lsu_dtlb_addr_mask_l_e), 
-                 .tlb_bypass            (lsu_dtlb_bypass_e),     
-                 .tlb_bypass_va         (exu_lsu_ldst_va_e[12:10]), 
-                 .tlb_cam_pid           (lsu_dtlb_cam_pid_e[2:0]), 
-                 //.tlb_cam_real          (lsu_dtlb_cam_real_e),   
-                 .tlb_cam_vld           (tlb_ldst_cam_vld),      
-                 .tlb_demap             (lsu_dtlb_dmp_vld_e),    
-                 .tlb_demap_all         (lsu_dtlb_dmp_all_e),    
-                 .tlb_demap_auto        (tlu_dtlb_dmp_actxt_g),  
-                 //.tlb_demap_ctxt        (tlu_dtlb_dmp_by_ctxt_g), 
-                 .tlb_demap_key         (tlu_idtlb_dmp_key_g[40:0]), 
-                 .tlb_rd_data_vld       (lsu_dtlb_data_rd_e),    
-                 .tlb_rd_tag_vld        (lsu_dtlb_tag_rd_e),     
-                 .tlb_rw_index          (tlu_dtlb_rw_index_g[5:0]), 
-                 .tlb_rw_index_vld      (lsu_dtlb_rwindex_vld_e), 
-                 .tlb_wr_tte_data       (tlu_dtlb_tte_data_w2[42:0]), 
-                 .tlb_wr_tte_tag        (tlu_dtlb_tte_tag_w2[58:0]), 
-                 .tlb_wr_vld            (lsu_dtlb_wr_vld_e),     
-                 .cache_ptag_w0   ({dtag_rdata_w0_m[28:0], lsu_ldst_va_m[10]}), 
-                 .cache_ptag_w1   ({dtag_rdata_w1_m[28:0], lsu_ldst_va_m[10]}),  
-                 .cache_ptag_w2   ({dtag_rdata_w2_m[28:0], lsu_ldst_va_m[10]}),  
-                 .cache_ptag_w3   ({dtag_rdata_w3_m[28:0], lsu_ldst_va_m[10]}));     
+                 .adj                   (lsu_dtlb_mrgn[7:0]),
+                 .cache_set_vld         (dva_vld_m[3:0]),
+                 .grst_l                (1'b1), // hard reset not to be used
+                 .rst_soft_l            (lsu_dtlb_invalid_all_l_m),
+                 .hold              	(sehold),
+                 .tlb_addr_mask_l       (lsu_dtlb_addr_mask_l_e),
+                 .tlb_bypass            (lsu_dtlb_bypass_e),
+                 .tlb_bypass_va         (exu_lsu_ldst_va_e[12:10]),
+                 .tlb_cam_pid           (lsu_dtlb_cam_pid_e[2:0]),
+                 //.tlb_cam_real          (lsu_dtlb_cam_real_e),
+                 .tlb_cam_vld           (tlb_ldst_cam_vld),
+                 .tlb_demap             (lsu_dtlb_dmp_vld_e),
+                 .tlb_demap_all         (lsu_dtlb_dmp_all_e),
+                 .tlb_demap_auto        (tlu_dtlb_dmp_actxt_g),
+                 //.tlb_demap_ctxt        (tlu_dtlb_dmp_by_ctxt_g),
+                 .tlb_demap_key         (tlu_idtlb_dmp_key_g[40:0]),
+                 .tlb_rd_data_vld       (lsu_dtlb_data_rd_e),
+                 .tlb_rd_tag_vld        (lsu_dtlb_tag_rd_e),
+                 .tlb_rw_index          (tlu_dtlb_rw_index_g[5:0]),
+                 .tlb_rw_index_vld      (lsu_dtlb_rwindex_vld_e),
+                 .tlb_wr_tte_data       (tlu_dtlb_tte_data_w2[42:0]),
+                 .tlb_wr_tte_tag        (tlu_dtlb_tte_tag_w2[58:0]),
+                 .tlb_wr_vld            (lsu_dtlb_wr_vld_e),
+                 .cache_ptag_w0   ({dtag_rdata_w0_m[28:0], lsu_ldst_va_m[10]}),
+                 .cache_ptag_w1   ({dtag_rdata_w1_m[28:0], lsu_ldst_va_m[10]}),
+                 .cache_ptag_w2   ({dtag_rdata_w2_m[28:0], lsu_ldst_va_m[10]}),
+                 .cache_ptag_w3   ({dtag_rdata_w3_m[28:0], lsu_ldst_va_m[10]}));
 */
 
 bw_r_tlb dtlb  (
                 .so                     (short_scan0_4),
                 .si                     (short_scan0_3),
-          .tlb_cam_key   ( {exu_lsu_ldst_va_e[47:28], 1'b1, 
-                            exu_lsu_ldst_va_e[27:22], 1'b1, 
-			                      exu_lsu_ldst_va_e[21:16], 1'b1, 
-                            exu_lsu_ldst_va_e[15:13], 1'b1, 
+          .tlb_cam_key   ( {exu_lsu_ldst_va_e[47:28], 1'b1,
+                            exu_lsu_ldst_va_e[27:22], 1'b1,
+			                      exu_lsu_ldst_va_e[21:16], 1'b1,
+                            exu_lsu_ldst_va_e[15:13], 1'b1,
                             //1'b1,
 			                      lsu_dtlb_cam_real_e,
 			                      lsu_dtlb_cam_real_e}
-                          ), 
+                          ),
 
                  /*AUTOINST*/
                 // Outputs
@@ -3630,18 +3663,18 @@ lsu_stb_rwctl  AUTO_TEMPLATE  (
                          .stb_cam_hit      (stb_cam_hit_bf1),
  			                   .lsu_st_ack_rq_stb(4'b0000),
                          .ffu_lsu_blk_st_tid_m (ffu_lsu_data[77:76]),
-                         .ld_inst_vld_e (ifu_lsu_ld_inst_e),     
-                         .ldst_sz_e     (ifu_lsu_ldst_size_e[1:0]), 
-                         .st_inst_vld_e (ifu_lsu_st_inst_e),     
-                         .stb_rdata_ramc_b8t0 (stb_rdata_ramc[8:0]),     
-                         .tlb_pgnum_b39_g(tlb_pgnum_buf[39]));        
-*/ 
+                         .ld_inst_vld_e (ifu_lsu_ld_inst_e),
+                         .ldst_sz_e     (ifu_lsu_ldst_size_e[1:0]),
+                         .st_inst_vld_e (ifu_lsu_st_inst_e),
+                         .stb_rdata_ramc_b8t0 (stb_rdata_ramc[8:0]),
+                         .tlb_pgnum_b39_g(tlb_pgnum_buf[39]));
+*/
 `ifdef FPGA_SYN_1THREAD
-   
+
 lsu_stb_rwctl stb_rwctl (
                          .so            (short_scan1_4),
                          .si            (short_scan1_3),
-                         .stb_wdata_ramd_b75_b64(stb_wdata_ramd_b75_b64[75:64]),                    
+                         .stb_wdata_ramd_b75_b64(stb_wdata_ramd_b75_b64[75:64]),
                   		   .stb_ldst_byte_msk_min	(stb_ldst_byte_msk_min[7:0]),
                          /*AUTOINST*/
                          // Outputs
@@ -3748,11 +3781,11 @@ lsu_stb_rwctl stb_rwctl (
                          .lsu_stbcnt2   (lsu_stbcnt2[3:0]),
                          .lsu_stbcnt3   (lsu_stbcnt3[3:0]));
 `else
-   
+
 lsu_stb_rwctl stb_rwctl (
                          .so            (short_scan1_4),
                          .si            (short_scan1_3),
-                         .stb_wdata_ramd_b75_b64(stb_wdata_ramd_b75_b64[75:64]),                    
+                         .stb_wdata_ramd_b75_b64(stb_wdata_ramd_b75_b64[75:64]),
                   		   .stb_ldst_byte_msk_min	(stb_ldst_byte_msk_min[7:0]),
                          /*AUTOINST*/
                          // Outputs
@@ -3859,7 +3892,7 @@ lsu_stb_rwctl stb_rwctl (
                          .lsu_stbcnt2   (lsu_stbcnt2[3:0]),
                          .lsu_stbcnt3   (lsu_stbcnt3[3:0]));
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
+
 /*
 lsu_stb_rwdp AUTO_TEMPLATE (
       .rst_tri_en           (mux_drive_disable),
@@ -3909,7 +3942,7 @@ bw_r_scm  AUTO_TEMPLATE (
                          .stb_cam_data  (tlb_pgnum_crit[39:10]),
                          .stb_cam_rw_tid(stb_cam_rw_ptr[4:3]));
 */
-   
+
 bw_r_scm   stb_cam   (
           .stb_camwr_data ({lsu_stb_va_m[9:3],stb_ldst_byte_msk_min[7:0]}),
           /*AUTOINST*/
@@ -3945,10 +3978,10 @@ bw_r_scm   stb_cam   (
                          //.sehold (),
                          .reset_l(arst_l),
                          .rclk    (clk));
- 
-*/    
+
+*/
 bw_r_rf32x80 stb_data(
-                      .din ({4'b0, stb_wdata_ramd_b75_b64[75:64], lsu_stb_st_data_g[63:0]}),  
+                      .din ({4'b0, stb_wdata_ramd_b75_b64[75:64], lsu_stb_st_data_g[63:0]}),
                       .so               (short_scan0_5),
                       .si               (short_scan0_4),
                       /*AUTOINST*/
@@ -4014,7 +4047,7 @@ bw_r_rf32x80 stb_data(
          .stb_state_rtype_5    (stb@_state_rtype_5[2:1]),
          .stb_state_rtype_6    (stb@_state_rtype_6[2:1]),
          .stb_state_rtype_7    (stb@_state_rtype_7[2:1]),
-         .stb_state_io         (stb@_state_io[7:0]), 
+         .stb_state_io         (stb@_state_io[7:0]),
          .stb_state_rmo        (stb@_state_rmo[7:0]));
 */
 
@@ -4038,10 +4071,10 @@ bw_r_rf32x80 stb_data(
          .stb_state_rtype_5    (stb@_state_rtype_5[2:1]),
          .stb_state_rtype_6    (stb@_state_rtype_6[2:1]),
          .stb_state_rtype_7    (stb@_state_rtype_7[2:1]),
-         .stb_state_io         (stb@_state_io[7:0]), 
+         .stb_state_io         (stb@_state_io[7:0]),
          .stb_state_rmo        (stb@_state_rmo[7:0]));
 */
-   
+
 lsu_stb_ctl stb_ctl0  (
                        .so              (short_scan0_6),
                        .si              (short_scan0_5),
@@ -4133,8 +4166,8 @@ lsu_stb_ctldp stb_ctldp0  (
                            .lsu_st_rmo_m(lsu_st_rmo_m));
 
 `ifdef FPGA_SYN_1THREAD
-   
-   
+
+
 lsu_stb_ctl stb_ctl1  (
                        .so              (short_scan1_6),
                        .si              (short_scan1_5),
@@ -4406,7 +4439,7 @@ lsu_stb_ctldp stb_ctldp3  (
                            .lsu_st_rmo_m(1'b0));
 `else // !`ifdef FPGA_SYN_1THREAD
 
-   
+
 lsu_stb_ctl stb_ctl1  (
                        .so              (short_scan1_6),
                        .si              (short_scan1_5),
@@ -4496,7 +4529,7 @@ lsu_stb_ctldp stb_ctldp1  (
                            .lsu_stb_va_m(lsu_stb_va_m[7:6]),
                            .lsu_st_rq_type_m(lsu_st_rq_type_m[2:1]),
                            .lsu_st_rmo_m(lsu_st_rmo_m));
-   
+
 lsu_stb_ctl stb_ctl2  (
                        .so              (short_scan1_7),
                        .si              (short_scan1_6),
@@ -4677,7 +4710,7 @@ lsu_stb_ctldp stb_ctldp3  (
                            .lsu_st_rq_type_m(lsu_st_rq_type_m[2:1]),
                            .lsu_st_rmo_m(lsu_st_rmo_m));
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
+
 /*
 lsu_qdp1 AUTO_TEMPLATE (
         .tlb_pgnum            (tlb_pgnum_buf[39:13]),
@@ -4695,16 +4728,16 @@ lsu_qdp1 AUTO_TEMPLATE (
         .lmq_byp_data_sel2     (lmq_byp_data_mxsel2[3:0]),
         .lmq_byp_data_sel3     (lmq_byp_data_mxsel3[3:0]),
         .ld_thrd_byp_sel_m     (ld_thrd_byp_mxsel_m[3:0]),
-        .ifu_pcx_pkt           (ifu_lsu_pcxpkt_e[51:0]), 
+        .ifu_pcx_pkt           (ifu_lsu_pcxpkt_e[51:0]),
         .lmq_byp_misc_sel      (lsu_lmq_byp_misc_sel[3:0]),
         .lsu_dcache_rdata_w    (dcache_rdata_wb_buf[63:0]));
-*/                   
+*/
 `ifdef FPGA_SYN_1THREAD
-                                                    
+
 lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
-		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}), 
+		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}),
 		             .dtag_wdata_m		      (dtag_wdata_m[29:0]),
                  /*AUTOINST*/
                  // Outputs
@@ -4834,11 +4867,11 @@ lsu_qdp1  qdp1  (
                  .l2fill_vld_m          (l2fill_vld_m),
                  .ld_thrd_byp_sel_m     (ld_thrd_byp_mxsel_m[3:0])); // Templated
 `else
-                                                     
+
 lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
-		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}), 
+		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}),
 		             .dtag_wdata_m		      (dtag_wdata_m[29:0]),
                  /*AUTOINST*/
                  // Outputs
@@ -4968,8 +5001,8 @@ lsu_qdp1  qdp1  (
                  .l2fill_vld_m          (l2fill_vld_m),
                  .ld_thrd_byp_sel_m     (ld_thrd_byp_mxsel_m[3:0])); // Templated
 `endif // !`ifdef FPGA_SYN_1THREAD
-   
-/* 
+
+/*
 lsu_qdp2 AUTO_TEMPLATE (
        .rst_tri_en              (mux_drive_disable),
        .dfq_byp_ff_en          (lsu_dfq_byp_ff_en),
@@ -5057,7 +5090,7 @@ lsu_qdp2 qdp2  (
                 .lsu_dfq_st_vld         (lsu_qdp2_dfq_st_vld),   // Templated
                 .lsu_dfq_ldst_vld       (lsu_dfq_ldst_vld));
 
-   
+
 /*
 bw_r_rf32x152b AUTO_TEMPLATE (
                  .rst_tri_en           (mem_write_disable),
@@ -5070,8 +5103,8 @@ bw_r_rf32x152b AUTO_TEMPLATE (
                  //.sehold                (),
                  .reset_l               (arst_l));
 */
-   
-bw_r_rf32x152b   dfq   ( 
+
+bw_r_rf32x152b   dfq   (
                  .din            ({dfq_wdata[151:131],
                                    lsu_cpx_stack_dcfill_vld_b130,
                                    dfq_wdata[129],
