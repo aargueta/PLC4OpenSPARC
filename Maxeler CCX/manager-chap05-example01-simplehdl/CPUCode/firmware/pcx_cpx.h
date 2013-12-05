@@ -278,6 +278,7 @@ int process(struct pcx_pkt *t1_out, struct cpx_pkt *t1_in);
 void add_cpx_ctl(struct cpx_pkt* cpx_pkt, struct max_cpx_pkt* max_cpx_pkt);
 void cpx_pkt_init(struct cpx_pkt *cpx_pkt);
 void print_cpx_pkt(struct cpx_pkt *pkt);
+void print_max_cpx_pkt(struct max_cpx_pkt *pkt);
 void print_pcx_pkt(struct pcx_pkt *pcx_pkt);
 
 #define  INVALIDATE_NONE		0x0

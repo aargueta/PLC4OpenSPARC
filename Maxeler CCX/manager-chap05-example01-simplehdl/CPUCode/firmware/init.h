@@ -34,7 +34,7 @@ extern "C" {
 
 void generate_poweron_interrupt(struct max_cpx_pkt* max_cpx_pkt);
 
-maxfw_init(int t1DRAMSize, char* t1PROMFilename, char* t1RAMDiskFilename, struct max_mem_config* config);
+int maxfw_init(int t1DRAMSize, char* t1PROMFilename, char* t1RAMDiskFilename, struct max_mem_config* config);
 
 #ifdef  __cplusplus
 }

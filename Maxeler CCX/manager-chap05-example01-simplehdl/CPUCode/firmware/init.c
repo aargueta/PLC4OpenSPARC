@@ -63,6 +63,14 @@ generate_poweron_interrupt(struct max_cpx_pkt* max_cpx_pkt)
     return;
 }
 
+void b2l_endian(uint32_t* big, uint32_t* little, int size){
+	for(int i = 0; i < size; i++){
+	    little[i] = (big[i] << 24) |
+	          ((big[i] <<  8) & 0x00ff0000) |
+	          ((big[i] >>  8) & 0x0000ff00) |
+	          ((big[i] >> 24) & 0x000000ff);
+	}
+}
 
 int
 maxfw_init(int t1DRAMSize, char* t1PROMFilename, char* t1RAMDiskFilename, struct max_mem_config* config)
@@ -81,13 +89,16 @@ maxfw_init(int t1DRAMSize, char* t1PROMFilename, char* t1RAMDiskFilename, struct
 	fseek(PROM_fp, 0, SEEK_END);
 	uint64_t t1PROMSize = ftell(PROM_fp);
 	rewind(PROM_fp);
+	uint32_t* temp_t1PROM = malloc(t1PROMSize);
 	uint32_t* t1PROM = malloc(t1PROMSize);
-	int result = fread(t1PROM, sizeof(char), t1PROMSize, PROM_fp);
+	int result = fread(temp_t1PROM, sizeof(char), t1PROMSize, PROM_fp);
 	if(result != t1PROMSize){
 		printf("PROM file read error:read %d, expected %d\n", result, t1PROMSize);
 		exit(1);
 	}
 	fclose(PROM_fp);
+	b2l_endian(temp_t1PROM, t1PROM, t1PROMSize/4);
+	free(temp_t1PROM);
 	config->t1_prom_start = t1PROM;
 	config->t1_prom_size = t1PROMSize;
 

@@ -103,22 +103,32 @@ void cpx_pkt_init(struct cpx_pkt *cpx_pkt) {
 }
 
 void print_cpx_pkt(struct cpx_pkt *pkt) {
-	printf("\r\n");
+	printf("\n");
 	printf("INFO: cpx_pkt: ctrl 0x%08x \n", pkt->ctrl);
 	printf("INFO: cpx_pkt: data3 0x%08x \n", pkt->data3);
 	printf("INFO: cpx_pkt: data2 0x%08x \n", pkt->data2);
 	printf("INFO: cpx_pkt: data1 0x%08x \n", pkt->data1);
 	printf("INFO: cpx_pkt: data0 0x%08x \n", pkt->data0);
-	printf("\r\n");
+	printf("\n");
+}
+
+void print_max_cpx_pkt(struct max_cpx_pkt *pkt) {
+	printf("\n");
+	printf("INFO: cpx_pkt: ctrl 0x%08x \n", (uint32_t)(pkt->ctrl));
+	printf("INFO: cpx_pkt: data3 0x%08x \n", (uint32_t)(pkt->data3));
+	printf("INFO: cpx_pkt: data2 0x%08x \n", (uint32_t)(pkt->data2));
+	printf("INFO: cpx_pkt: data1 0x%08x \n", (uint32_t)(pkt->data1));
+	printf("INFO: cpx_pkt: data0 0x%08x \n", (uint32_t)(pkt->data0));
+	printf("\n");
 }
 
 void print_pcx_pkt(struct pcx_pkt *pcx_pkt) {
-	printf("\r\n");
+	printf("\n");
 	printf("INFO: pcx_pkt: addr_hi_ctrl 0x%08x \n", pcx_pkt->addr_hi_ctrl);
 	printf("INFO: pcx_pkt: addr_lo 0x%08x \n", pcx_pkt->addr_lo);
 	printf("INFO: pcx_pkt: data1 0x%08x \n", pcx_pkt->data1);
 	printf("INFO: pcx_pkt: data0 0x%08x \n", pcx_pkt->data0);
-	printf("\r\n");
+	printf("\n");
 }
 
 static int invalidate_core_dcache(struct pcx_pkt *pcx_pkt, int core_id,
@@ -817,7 +827,7 @@ static void process_ifill_invalidate(struct pcx_pkt *pcx_pkt,
 static void return_16bytes_ifill_resp(struct pcx_pkt *pcx_pkt,
 		struct cpx_pkt *cpx_pkt, maddr_t mb_addr) {
 
-	//maddr_t mb_addr_qw_align = mb_addr & MB_ADDR_QWORD_ALIGN_MASK;
+	maddr_t mb_addr_qw_align = mb_addr & 0xFFFFFFFFFFFFFFF0;// & MB_ADDR_QWORD_ALIGN_MASK;
 	int core_id;
 
 	core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
@@ -825,11 +835,10 @@ static void return_16bytes_ifill_resp(struct pcx_pkt *pcx_pkt,
 	CPX_PKT_CTRL_IFILL_4B(cpx_pkt);
 	CPX_PKT_REFLECT_NC_THREAD_ID(cpx_pkt, pcx_pkt);
 
-	cpx_pkt->data3 = *(uint32_t *) (mb_addr + 0x0);
-	cpx_pkt->data2 = *(uint32_t *) (mb_addr + 0x4);
-	cpx_pkt->data1 = *(uint32_t *) (mb_addr + 0x8);
-	cpx_pkt->data0 = *(uint32_t *) (mb_addr + 0xC);
-	print_cpx_pkt(cpx_pkt);
+	cpx_pkt->data3 = *(uint32_t *) (mb_addr_qw_align + 0x0);
+	cpx_pkt->data2 = *(uint32_t *) (mb_addr_qw_align + 0x4);
+	cpx_pkt->data1 = *(uint32_t *) (mb_addr_qw_align + 0x8);
+	cpx_pkt->data0 = *(uint32_t *) (mb_addr_qw_align + 0xC);
 	//send_cpx_pkt(core_id, cpx_pkt);
 
 	return;
@@ -851,26 +860,29 @@ static int process_ifill(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 	core_id = PCX_PKT_GET_CORE_ID(pcx_pkt);
 
 	t1_addr = PCX_PKT_GET_T1_ADDR(pcx_pkt);
-	printf("Core #%d requests from 0x%x\n", core_id, t1_addr);
+	//printf("Core #%d requests from 0x%x\n", core_id, t1_addr);
 	if (is_t1_dram_addr(t1_addr)){//IS_T1_DRAM_ADDR(t1_addr)) {
-		printf("Is T1 address\n");
+		//printf("Is T1 address\n");
 		mb_addr = t1_addr_to_max(t1_addr);
 		//T1_DRAM_ADDR_2_MB_ADDR(pcx_pkt, t1_addr, &mb_addr);
 	} else {
-		printf("Not T1 address!\n");
+		//printf("Not T1 address!\n");
 		translate_addr(pcx_pkt, t1_addr, &mb_addr);
 	}
+
 	if (PCX_PKT_IS_INVALIDATE(pcx_pkt)) {
+		printf(" invalidate\n");
 		process_ifill_invalidate(pcx_pkt, cpx_pkt);
 		num_pkts = 1; //!
 		return 1;
 	} else {
 		if (PCX_PKT_IS_IO_SPACE(pcx_pkt)) {
+
 			/* send 16 bytes only */
 			return_16bytes_ifill_resp(pcx_pkt, cpx_pkt, mb_addr);
 			num_pkts = 1; //!
 		} else {
-
+			printf(" 2 packets\n");
 			/* send 32 bytes */
 			mb_addr_ic_align = mb_addr & MB_ADDR_ICACHE_LINE_ALIGN_MASK;
 			t1_addr_ic_align = ((taddr_opt_t) t1_addr)
@@ -1101,7 +1113,7 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 		return -1;
 	}
 	uint_t rqtyp = PCX_PKT_GET_RQTYP(pcx_pkt);
-	printf("Request type %d ", rqtyp);
+	//printf("T%d\n", rqtyp);
 	// Process common cases (faster processing)
 	if (IS_COMMON_CASE_PCX_PKT(pcx_pkt)) {
 		printf("is Common\n");
@@ -1117,7 +1129,7 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 			return 2;
 		}
 	}
-	printf("is uncommon\n");
+	//printf("is uncommon\n");
 	// Process non-common cases (normal processing)
 	int num_pkts = 1;
 	int cpu_id = -1;
@@ -1125,10 +1137,12 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 	switch (rqtyp) {
 
 	case PCX_REQ_LOAD:
+		printf("LOAD\n");
 		process_load(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_STORE:
+		printf("STORE\n");
 		if (PCX_PKT_IS_BIS_BST(pcx_pkt)) {
 			process_bis_bst(pcx_pkt, cpx_pkt); // DONE
 		} else {
@@ -1137,16 +1151,18 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 		break;
 
 	case PCX_REQ_IFILL:
-		printf("IFILL\n");
+		//printf("IFILL");
 		num_pkts = process_ifill(pcx_pkt, cpx_pkt); // DONE
 		break;
 
 	case PCX_REQ_SWAP_LDSTUB:
+		printf("SWAP\n");
 		process_swap_ldstub(pcx_pkt, cpx_pkt); // DONE
 		num_pkts = 2;
 		break;
 
 	case PCX_REQ_CAS_LOAD: // DONE
+		printf("CAS_LOAD\n");
 		cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
 		if (PCX_PKT_GET_CORE_ID(pcx_pkt) == T1_MASTER_CORE_ID) {
 			cpu_cas1_packet[cpu_id] = *pcx_pkt;
@@ -1158,6 +1174,7 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 		return -1;
 
 	case PCX_REQ_CAS_STORE: // DONE
+		printf("CAS_STORE\n");
 		cpu_id = PCX_PKT_GET_CPU_ID(pcx_pkt);
 		process_cas(&cpu_cas1_packet[cpu_id], pcx_pkt, cpx_pkt);
 		get_local = 1;
@@ -1170,6 +1187,7 @@ int process(struct pcx_pkt *pcx_pkt, struct cpx_pkt *cpx_pkt) {
 		break;
 
 	case PCX_REQ_INT_FLUSH:
+		printf("IFLUSH\n");
 		process_int_flush(pcx_pkt, cpx_pkt); // DONE
 		break;
 

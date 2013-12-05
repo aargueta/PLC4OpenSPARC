@@ -14,6 +14,7 @@
 module opensparc_t1(
 	clk,
 	rst,
+	rst_en,
 	
 	cpx_empty,
 	cpx_almost_empty,
@@ -27,6 +28,7 @@ module opensparc_t1(
 	parameter CPU_ID = 4'b0000;
 	input clk;
 	input rst;
+	input [31:0] rst_en;
 	
 	input cpx_empty;
 	input cpx_almost_empty;
@@ -51,6 +53,7 @@ module opensparc_t1(
 	// Reset counter
 	wire reset_done;
 	
+	wire reset = rst & rst_en[0];
 	wire cpx_read;
 	ccx2max ccx(
 		//Outputs
@@ -66,7 +69,7 @@ module opensparc_t1(
 
 		//Inputs
 		.gclk(clk), 
-		.reset(rst), 
+		.reset(reset), 
 		.core_reset_done(reset_done),
 
 		.spc_pcx_data_pa(spc_pcx_data_pa), 
@@ -82,16 +85,18 @@ module opensparc_t1(
 		.max_pcx_stall(pcx_stall)
 	);
 
-	/*
+	
 	// Dummy reply logic
-	assign spc_pcx_atom_pq = 0;
+	/*assign spc_pcx_atom_pq = 0;
 	assign spc_pcx_req_pq = {cpx_spc_data_rdy_cx2, 4'b0000};
 	always @(posedge clk)begin
-		spc_pcx_data_pa = {5'h17, cpx_spc_data_cx2[118:0]};
-	end	*/
+		spc_pcx_data_pa <= //{hold_over[92:0], cpx_spc_data_cx2[91:0]};
+		{32'h482018FF, 32'hF0C2C005, 32'hFFFFFFFF, 32'hFFFFFF00};
+		reset_done <= ~reset;
+	end*/
 
 	iop_fpga sparc(
-		.reset_l(~rst), 
+		.reset_l(~reset), 
 		.gclk(clk),
 		.cpu_id(CPU_ID),
 		.spc_pcx_req_pq(spc_pcx_req_pq),

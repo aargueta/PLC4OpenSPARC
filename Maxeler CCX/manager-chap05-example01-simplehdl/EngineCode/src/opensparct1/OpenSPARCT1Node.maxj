@@ -26,9 +26,12 @@ final class OpenSPARCT1Node extends CustomHDLNode{
 		CustomNodeClock clock = addClockDomain("clk");
 		clock.setNeedsReset("rst");
 
+		addScalarInput("rst_en", 32);
+
 		addInputStream("cpx", 64, clock, CustomNodeFlowControl.PULL, 1);
 		addOutputStream("pcx", 32, clock, CustomNodeFlowControl.PUSH, 1);
 
 		addNetlist("opensparc_t1.ngc", false);
+		//int i = 0;
 	}
 }
